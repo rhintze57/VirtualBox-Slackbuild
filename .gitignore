@@ -4,3 +4,5 @@ virtualbox-6.1.4/virtualbox/SDKRef.pdf
 virtualbox-6.1.4/virtualbox/UserManual.pdf
 virtualbox-6.1.4/virtualbox/VBoxGuestAdditions_6.1.4.iso
 virtualbox-6.1.4/virtualbox-extension-pack/Oracle_VM_VirtualBox_Extension_Pack-6.1.4.vbox-extpack
+virtualbox-6.1.4/virtualbox/cleanup_for_post.sh
+virtualbox-6.1.4/virtualbox-extension-pack/cleanup_for_post.sh

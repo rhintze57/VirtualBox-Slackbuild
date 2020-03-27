@@ -9,3 +9,7 @@ Dependancies:  acpica, virtualbox-kernel
 
 
 The SlackBuilds here are just modified versions from slackbuilds.org
+
+Install needed files
+<pre>
+./downloads_needed.txt

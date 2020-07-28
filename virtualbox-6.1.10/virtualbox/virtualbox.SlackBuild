@@ -25,7 +25,7 @@
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-6.1.8}
+VERSION=${VERSION:-6.1.10}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 
@@ -143,6 +143,12 @@ patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 
 # Fix wrong path to rdesktop-vrdp-keymaps
 #patch -p1 -i $CWD/006-rdesktop-vrdp-keymap-path.patch
+#patch -p1 -i $CWD/patch/00001-unified
+patch -p1 -i $CWD/patch/0001-UIImageTools.cpp
+patch -p0 -i $CWD/patch/0002-UIMenuToolBar.cpp
+patch -p0 -i $CWD/patch/0003-UIMiniToolBar.cpp
+patch -p0 -i $CWD/patch/0004-UIPopupBox.cpp
+patch -p0 -i $CWD/patch/0005-UIPopupBox.h
 ##echo "try p2"
 ##patch -p1 -i $CWD/patch/002-dri-driver-path.patch
 ##echo "try p3"
@@ -166,6 +172,7 @@ sed -i 's/^check_gcc$/#check_gcc/' ./configure
 # Use our CFLAGS
 ###sed -i "s|CXX_FLAGS=\"\"|CXX_FLAGS=\"$SLKCFLAGS\"|" ./configure
 sed -i "s|CXX_FLAGS=\"\"|CXX_FLAGS=\"$SLKCFLAGS -std=c++11\"|" ./configure
+
 
 ./configure \
   --disable-kmods \

@@ -1,7 +1,7 @@
 # slackware
 A collection of slackware goodies
 
-The first is a Slackbuild for virtualbox 6.1.8 
+Slackbuild for virtualbox 6.1.10
 tested on slackware current.
 
 Dependancies:  acpica, virtualbox-kernel

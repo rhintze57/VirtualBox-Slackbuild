@@ -25,7 +25,7 @@
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-6.1.10}
+VERSION=${VERSION:-6.1.12}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 
@@ -144,11 +144,12 @@ patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 # Fix wrong path to rdesktop-vrdp-keymaps
 #patch -p1 -i $CWD/006-rdesktop-vrdp-keymap-path.patch
 #patch -p1 -i $CWD/patch/00001-unified
-patch -p1 -i $CWD/patch/0001-UIImageTools.cpp
-patch -p0 -i $CWD/patch/0002-UIMenuToolBar.cpp
-patch -p0 -i $CWD/patch/0003-UIMiniToolBar.cpp
-patch -p0 -i $CWD/patch/0004-UIPopupBox.cpp
-patch -p0 -i $CWD/patch/0005-UIPopupBox.h
+# 6.1.10 patches
+#patch -p1 -i $CWD/patch/0001-UIImageTools.cpp
+#patch -p0 -i $CWD/patch/0002-UIMenuToolBar.cpp
+#patch -p0 -i $CWD/patch/0003-UIMiniToolBar.cpp
+#patch -p0 -i $CWD/patch/0004-UIPopupBox.cpp
+#patch -p0 -i $CWD/patch/0005-UIPopupBox.h
 ##echo "try p2"
 ##patch -p1 -i $CWD/patch/002-dri-driver-path.patch
 ##echo "try p3"
@@ -168,6 +169,9 @@ patch -p0 -i $CWD/patch/0005-UIPopupBox.h
 
 # Remove gcc version check
 sed -i 's/^check_gcc$/#check_gcc/' ./configure
+
+# Remove experimental cloud integration.
+sed -i 's|VBOX_WITH_CLOUD_NET = 1|VBOX_WITH_CLOUD_NET :=|' ./Config.kmk
 
 # Use our CFLAGS
 ###sed -i "s|CXX_FLAGS=\"\"|CXX_FLAGS=\"$SLKCFLAGS\"|" ./configure

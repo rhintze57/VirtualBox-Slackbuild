@@ -167,14 +167,14 @@ patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 #echo "try p9"/
 #patch -p1 -i $CWD/patch/011-python-3-7.patch
 
-# Remove gcc version check
-sed -i 's/^check_gcc$/#check_gcc/' ./configure
+# Remove gcc version check (think this is not needed)
+# sed -i 's/^check_gcc$/#check_gcc/' ./configure
 
-# Remove experimental cloud integration.
-sed -i 's|VBOX_WITH_CLOUD_NET = 1|VBOX_WITH_CLOUD_NET :=|' ./Config.kmk
+# Remove experimental cloud integration.  (added to LocalConfig.kmk) 
+# sed -i 's|VBOX_WITH_CLOUD_NET = 1|VBOX_WITH_CLOUD_NET :=|' ./Config.kmk
 
 # Use our CFLAGS
-###sed -i "s|CXX_FLAGS=\"\"|CXX_FLAGS=\"$SLKCFLAGS\"|" ./configure
+#sed -i "s|CXX_FLAGS=\"\"|CXX_FLAGS=\"$SLKCFLAGS\"|" ./configure
 sed -i "s|CXX_FLAGS=\"\"|CXX_FLAGS=\"$SLKCFLAGS -std=c++11\"|" ./configure
 
 

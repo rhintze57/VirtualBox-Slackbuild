@@ -22,10 +22,10 @@ VBOX_PATH_APP_DOCS         := $(VBOX_PATH_APP_PRIVATE)
 VBOX_WITH_REGISTRATION  =
 
 # gcc 4.5 fix
-VBOX_WITH_WARNINGS_AS_ERRORS :=
+#VBOX_WITH_WARNINGS_AS_ERRORS :=
 
-# Do not require pam
-VBOX_WITH_PAM :=
+# Do not require pam  (uncomment if using pre-current without pam)
+#VBOX_WITH_PAM :=
 
 # Correct path to java
 VBOX_JAVA_HOME := /usr/LIBDIR/java
@@ -35,3 +35,9 @@ VBOX_WITHOUT_DOCS := 1
 
 # Use our CFLAGS
 VBOX_GCC_OPT := CXXFLAGS
+
+# Do not use Virtio feature.
+VBOX_WITH_VIRTIO := 
+
+# Remove experimental cloud integration.
+VBOX_WITH_CLOUD_NET :=

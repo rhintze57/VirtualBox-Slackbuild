@@ -1,11 +1,11 @@
 PRGNAM="virtualbox"
 VERSION="6.1.14"
 HOMEPAGE="https://www.virtualbox.org"
-DOWNLOAD="http://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14.tar.bz2 \
+DOWNLOAD="http://download.virtualbox.org/virtualbox/6.1.14/VirtualBox-6.1.14a.tar.bz2 \
           http://download.virtualbox.org/virtualbox/6.1.14/VBoxGuestAdditions_6.1.14.iso \
           http://download.virtualbox.org/virtualbox/6.1.14/UserManual.pdf \
           http://download.virtualbox.org/virtualbox/6.1.14/SDKRef.pdf"
-MD5SUM="6e4313df24fd00b0dc0437c3746b940d \
+MD5SUM="a45d712e3502a8c966da1a0bc2a8e318 \
         f21526bd6859da547597e798a0c47f24 \
         16165eb56a1c176211826f2a52770746 \
         cb17776877de1dd1d7984e32c62ca8fd"

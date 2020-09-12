@@ -26,7 +26,8 @@
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
 VERSION=${VERSION:-6.1.14}
-BUILD=${BUILD:-1}
+MVERSION=${MVERSION:-6.1.14a} #Minor version 
+BUILD=${BUILD:-2}
 TAG=${TAG:-_rah}
 
 if [ -z "$ARCH" ]; then
@@ -116,7 +117,7 @@ rm -rf $PKG
 mkdir -p $TMP $PKG $OUTPUT
 cd $TMP
 rm -rf $SRCNAM-${VERSION}
-tar xvf $CWD/$SRCNAM-${VERSION}.tar.bz2
+tar xvf $CWD/$SRCNAM-${MVERSION}.tar.bz2  #added Minor version
 cd $SRCNAM-${VERSION}
 chown -R root:root .
 find -L . \

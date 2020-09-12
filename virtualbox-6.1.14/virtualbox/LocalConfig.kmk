@@ -36,8 +36,8 @@ VBOX_WITHOUT_DOCS := 1
 # Use our CFLAGS
 VBOX_GCC_OPT := CXXFLAGS
 
-# Do not use Virtio feature.
-VBOX_WITH_VIRTIO := 
+# Do not use Virtio feature. (fixed with 6.1.14a)
+#VBOX_WITH_VIRTIO := 
 
 # Remove experimental cloud integration.
 VBOX_WITH_CLOUD_NET :=

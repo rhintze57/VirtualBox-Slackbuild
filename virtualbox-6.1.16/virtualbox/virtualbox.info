@@ -1,0 +1,17 @@
+PRGNAM="virtualbox"
+VERSION="6.1.16"
+HOMEPAGE="https://www.virtualbox.org"
+DOWNLOAD="http://download.virtualbox.org/virtualbox/6.1.16/VirtualBox-6.1.16.tar.bz2 \
+          http://download.virtualbox.org/virtualbox/6.1.16/VBoxGuestAdditions_6.1.16.iso \
+          http://download.virtualbox.org/virtualbox/6.1.16/UserManual.pdf \
+          http://download.virtualbox.org/virtualbox/6.1.16/SDKRef.pdf"
+MD5SUM="a12a647f6c114f2cb1571089b36841fe \
+        5710cdc38e4d7185b3df1c969b4cb267 \
+        774420c89b430a631cdc96f94627153f \
+        3b39f35aabc441d1bcbb969024b759e8"
+ 
+DOWNLOAD_x86_64=""
+MD5SUM_x86_64=""
+REQUIRES="acpica qt5 virtualbox-kernel"
+MAINTAINER="Rich Hintze"
+EMAIL="rich@lehcar.duckdns.org"

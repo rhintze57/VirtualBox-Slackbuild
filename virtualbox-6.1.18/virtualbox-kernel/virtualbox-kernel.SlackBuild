@@ -25,7 +25,7 @@
 # Modified by SlackBuilds.org
 
 PRGNAM=virtualbox-kernel
-VERSION=${VERSION:-6.1.16}
+VERSION=${VERSION:-6.1.18}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 

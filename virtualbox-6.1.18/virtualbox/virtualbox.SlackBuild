@@ -25,9 +25,9 @@
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-6.1.16}
-MVERSION=${MVERSION:-6.1.16} #Minor version 
-BUILD=${BUILD:-3}
+VERSION=${VERSION:-6.1.18}
+MVERSION=${MVERSION:-6.1.18} #Minor version 
+BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 
 if [ -z "$ARCH" ]; then
@@ -168,7 +168,7 @@ patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 #echo "try p9"/
 #patch -p1 -i $CWD/patch/011-python-3-7.patch
 # 6.1.16 patch for kernel 5.10.1
-patch -p0 -i $CWD/patch/0006-linux-5.10-r0drv-memobj-fix-r0.patch
+#patch -p0 -i $CWD/patch/0006-linux-5.10-r0drv-memobj-fix-r0.patch
 
 # Remove gcc version check (think this is not needed)
 # sed -i 's/^check_gcc$/#check_gcc/' ./configure

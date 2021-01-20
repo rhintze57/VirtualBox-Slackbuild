@@ -5,10 +5,10 @@ DOWNLOAD="http://download.virtualbox.org/virtualbox/6.1.18/VirtualBox-6.1.18.tar
           http://download.virtualbox.org/virtualbox/6.1.18/VBoxGuestAdditions_6.1.18.iso \
           http://download.virtualbox.org/virtualbox/6.1.18/UserManual.pdf \
           http://download.virtualbox.org/virtualbox/6.1.18/SDKRef.pdf"
-MD5SUM=" \
-         \
-         \
-        "
+MD5SUM="c61001386eb3822ab8f06d688a82e84b \
+        dc3c3f818d27a78f1accfcda05e13f85 \
+        dd8d7c6c90bc3d6bf6d6df2409959c1c \
+        b39598031bb68c44721f4fced8e5133c"
  
 DOWNLOAD_x86_64=""
 MD5SUM_x86_64=""

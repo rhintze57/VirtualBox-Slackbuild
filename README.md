@@ -1,10 +1,9 @@
 # slackware
 A collection of slackware goodies
 
-Slackbuild for virtualbox 6.1.20
-tested on slackware current. (with 5.12.0 testing or stock)
+Slackbuild for virtualbox 6.1.26
+tested on slackware current. (with 5.13.6 testing or stock)
 
---For now 6.1.18 seems to work better still investigating 6.1.20
 
 Dependancies:  acpica, virtualbox-kernel
 (both available at slackbuilds.org)

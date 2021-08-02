@@ -27,7 +27,7 @@ PRGNAM=virtualbox
 SRCNAM=VirtualBox
 VERSION=${VERSION:-6.1.26}
 MVERSION=${MVERSION:-6.1.26} #Minor version 
-BUILD=${BUILD:-1}
+BUILD=${BUILD:-2}
 TAG=${TAG:-_rah}
 
 if [ -z "$ARCH" ]; then
@@ -212,6 +212,8 @@ mkdir -p $PKG/usr/{lib$LIBDIRSUFFIX,share,include}/virtualbox \
 for i in vboxdrv.sh vboxballoonctrl-service.sh vboxautostart-service.sh; do
   SCRIPT=$(echo $i | cut -d "." -f 1)
   cp -f src/VBox/Installer/linux/$i $PKG/etc/rc.d/rc.$SCRIPT.new
+  ##MODULE_SRC="${MODULE_SRC}/virtualbox-kernel-6.1.26"
+  sed -i "63iMODULE_SRC=\"\$\{MODULE_SRC\}/virtualbox-kernel-${VERSION}\"" $PKG/etc/rc.d/rc.$SCRIPT.new
   sed -i "s/%PACKAGE%/virtualbox/g" $PKG/etc/rc.d/rc.$SCRIPT.new
   sed -i "s/%NOLSB%/yes/" $PKG/etc/rc.d/rc.$SCRIPT.new
   sed -i "s/%DEBIAN%/no/" $PKG/etc/rc.d/rc.$SCRIPT.new

@@ -25,9 +25,9 @@
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-6.1.26}
-MVERSION=${MVERSION:-6.1.26} #Minor version 
-BUILD=${BUILD:-2}
+VERSION=${VERSION:-6.1.28}
+MVERSION=${MVERSION:-6.1.28} #Minor version 
+BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 
 if [ -z "$ARCH" ]; then
@@ -133,7 +133,7 @@ MODE="755"
 # Use virtualbox-kernel.SlackBuild for this.
 patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 #6.1.26
-patch -i $CWD/patch/0008-config.patch $TMP/$SRCNAM-${VERSION}/configure
+#patch -i $CWD/patch/0008-config.patch $TMP/$SRCNAM-${VERSION}/configure
 #6.1.18 patch
 ##patch -p1 -i $CWD/patch/0007-VBoxNetFlt-linux.c.patch
 #trial without dkms 

@@ -25,8 +25,8 @@
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-6.1.28}
-MVERSION=${MVERSION:-6.1.28} #Minor version 
+VERSION=${VERSION:-6.1.30}
+MVERSION=${MVERSION:-6.1.30} #Minor version 
 BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 

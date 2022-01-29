@@ -1,8 +1,8 @@
 # slackware
 A collection of slackware goodies
 
-Slackbuild for virtualbox 6.1.30
-tested on slackware current. (with 5.15.6 testing or stock)
+Slackbuild for virtualbox 6.1.32
+tested on slackware current. (with 5.15.17 testing or stock)
 
 
 Dependancies:  acpica, virtualbox-kernel
@@ -20,5 +20,5 @@ To download the need source files run this: (in each folder)
 I use :
 ```
 HARDENING=yes ./virtualbox.SlackBuild
-KERNEL=5.15.6 HARDENING=yes ./virtualbox-kernel.SlackBuild
+KERNEL=5.15.17 HARDENING=yes ./virtualbox-kernel.SlackBuild
 ```

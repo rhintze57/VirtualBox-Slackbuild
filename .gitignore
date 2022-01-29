@@ -1,8 +1,8 @@
 # Ignore the downloaded files
-virtualbox-6.1.30/virtualbox/VirtualBox-6.1.30.tar.bz2
-virtualbox-6.1.30/virtualbox/SDKRef.pdf
-virtualbox-6.1.30/virtualbox/UserManual.pdf
-virtualbox-6.1.30/virtualbox/VBoxGuestAdditions_6.1.30.iso
-virtualbox-6.1.30/virtualbox-extension-pack/Oracle_VM_VirtualBox_Extension_Pack-6.1.30.vbox-extpack
-virtualbox-6.1.30/virtualbox/cleanup_for_post.sh
-virtualbox-6.1.30/virtualbox-extension-pack/cleanup_for_post.sh
+virtualbox-6.1.32/virtualbox/VirtualBox-6.1.32.tar.bz2
+virtualbox-6.1.32/virtualbox/SDKRef.pdf
+virtualbox-6.1.32/virtualbox/UserManual.pdf
+virtualbox-6.1.32/virtualbox/VBoxGuestAdditions_6.1.32.iso
+virtualbox-6.1.32/virtualbox-extension-pack/Oracle_VM_VirtualBox_Extension_Pack-6.1.32.vbox-extpack
+virtualbox-6.1.32/virtualbox/cleanup_for_post.sh
+virtualbox-6.1.32/virtualbox-extension-pack/cleanup_for_post.sh

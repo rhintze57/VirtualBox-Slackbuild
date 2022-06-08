@@ -1,6 +1,6 @@
---- /tmp/SBo/VirtualBox-6.1.0/src/VBox/Installer/linux/vboxdrv.sh	2019-12-10 12:52:43.000000000 -0500
-+++ /tmp/SBo/VirtualBox-6.1.0/src/VBox/Installer/linux/vboxdrv.sh_6.1.0_mod	2019-12-14 23:47:26.836169437 -0500
-@@ -61,20 +61,6 @@
+--- vboxdrv.sh.orig	2021-10-18 19:58:10.000000000 +0200
++++ vboxdrv.sh	2021-10-30 20:36:29.483575169 +0200
+@@ -61,23 +61,8 @@
  export USERNAME
  export USER=$USERNAME
  
@@ -20,10 +20,27 @@
 -fi
  VIRTUALBOX="${INSTALL_DIR}/VirtualBox"
  VBOXMANAGE="${INSTALL_DIR}/VBoxManage"
- BUILDINTMP="${MODULE_SRC}/build_in_tmp"
-@@ -156,116 +142,7 @@
-         >> "${LOG}"
+-BUILDINTMP="${MODULE_SRC}/build_in_tmp"
+ if test -u "${VIRTUALBOX}"; then
+     GROUP=root
+     DEVICE_MODE=0600
+@@ -148,131 +133,12 @@
+     echo "${1}" >> "${LOG}"
  }
+ 
+-module_build_log()
+-{
+-    setup_log
+-    echo "${1}" | egrep -v \
+-        "^test -e include/generated/autoconf.h|^echo >&2|^/bin/false\)$" \
+-        >> "${LOG}"
+-}
+-
+ # Detect VirtualBox version info or report error.
+ VBOX_VERSION="`"$VBOXMANAGE" -v | cut -d r -f1`"
+ [ -n "$VBOX_VERSION" ] || failure 'Cannot detect VirtualBox version number'
+ VBOX_REVISION="r`"$VBOXMANAGE" -v | cut -d r -f2`"
+ [ "$VBOX_REVISION" != "r" ] || failure 'Cannot detect VirtualBox revision number'
  
 -## Output the vboxdrv part of our udev rule.  This is redirected to the right file.
 -udev_write_vboxdrv() {
@@ -125,7 +142,7 @@
 -                                          "${usb_group}"
 -    done
 -}
- 
+-
 -cleanup_usb()
 -{
 -    # Remove udev description file
@@ -135,10 +152,11 @@
 -    # Remove our USB device tree
 -    rm -rf /dev/vboxusb
 -}
- 
- start()
+-
+ # Returns path to module file as seen by modinfo(8) or empty string.
+ module_path()
  {
-@@ -337,8 +214,6 @@
+@@ -415,8 +281,6 @@
          mkdir -p -m 0750 /dev/vboxusb 2>/dev/null
          chown root:vboxusers /dev/vboxusb 2>/dev/null
      fi
@@ -147,50 +165,114 @@
      succ_msg "VirtualBox services started"
  }
  
-@@ -517,38 +392,6 @@
+@@ -497,102 +361,10 @@
      fi
  }
  
--dmnstatus()
+-cleanup()
 -{
--    if running vboxdrv; then
--        str="vboxdrv"
--        if running vboxnetflt; then
--            str="$str, vboxnetflt"
--            if running vboxnetadp; then
--                str="$str, vboxnetadp"
--            fi
+-    # If this is set, only remove kernel modules for no longer installed
+-    # kernels.  Note that only generated kernel modules should be placed
+-    # in /lib/modules/*/misc.  Anything that we should not remove automatically
+-    # should go elsewhere.
+-    only_old="${1}"
+-    for i in /lib/modules/*; do
+-        # Check whether we are only cleaning up for uninstalled kernels.
+-        test -n "${only_old}" && test -e "${i}/kernel/drivers" && continue
+-        # We could just do "rm -f", but we only want to try deleting folders if
+-        # we are sure they were ours, i.e. they had our modules in beforehand.
+-        if    test -e "${i}/misc/vboxdrv.ko" \
+-           || test -e "${i}/misc/vboxnetadp.ko" \
+-           || test -e "${i}/misc/vboxnetflt.ko" \
+-           || test -e "${i}/misc/vboxpci.ko"; then
+-            rm -f "${i}/misc/vboxdrv.ko" "${i}/misc/vboxnetadp.ko" \
+-                  "${i}/misc/vboxnetflt.ko" "${i}/misc/vboxpci.ko"
+-            version=`expr "${i}" : "/lib/modules/\(.*\)"`
+-            depmod -a "${version}"
+-            sync
 -        fi
--        if running vboxpci; then
--            str="$str, vboxpci"
--        fi
--        echo "VirtualBox kernel modules ($str) are loaded."
--        for i in $SHUTDOWN_USERS; do
--            # don't create the ipcd directory with wrong permissions!
--            if [ -d /tmp/.vbox-$i-ipc ]; then
--                export VBOX_IPC_SOCKETID="$i"
--                VMS=`$VBOXMANAGE --nologo list runningvms | sed -e 's/^".*".*{\(.*\)}/\1/' 2>/dev/null`
--                if [ -n "$VMS" ]; then
--                    echo "The following VMs are currently running:"
--                    for v in $VMS; do
--                       echo "  $v"
--                    done
--                fi
--            fi
--        done
--    else
--        echo "VirtualBox kernel module is not loaded."
--    fi
+-        # Remove the kernel version folder if it was empty except for us.
+-        test   "`echo ${i}/misc/* ${i}/misc/.?* ${i}/* ${i}/.?*`" \
+-             = "${i}/misc/* ${i}/misc/.. ${i}/misc ${i}/.." &&
+-            rmdir "${i}/misc" "${i}"  # We used to leave empty folders.
+-    done
 -}
 -
- case "$1" in
- start)
-     start
-@@ -563,29 +406,10 @@
- restart)
+ # setup_script
+ setup()
+ {
+-    begin_msg "Building VirtualBox kernel modules" console
+-    log "Building the main VirtualBox module."
+-    if ! myerr=`$BUILDINTMP \
+-        --save-module-symvers /tmp/vboxdrv-Module.symvers \
+-        --module-source "$MODULE_SRC/vboxdrv" \
+-        --no-print-directory install 2>&1`; then
+-        "${INSTALL_DIR}/check_module_dependencies.sh" || exit 1
+-        log "Error building the module:"
+-        module_build_log "$myerr"
+-        failure "Look at $LOG to find out what went wrong"
+-    fi
+-    log "Building the net filter module."
+-    if ! myerr=`$BUILDINTMP \
+-        --use-module-symvers /tmp/vboxdrv-Module.symvers \
+-        --module-source "$MODULE_SRC/vboxnetflt" \
+-        --no-print-directory install 2>&1`; then
+-        log "Error building the module:"
+-        module_build_log "$myerr"
+-        failure "Look at $LOG to find out what went wrong"
+-    fi
+-    log "Building the net adaptor module."
+-    if ! myerr=`$BUILDINTMP \
+-        --use-module-symvers /tmp/vboxdrv-Module.symvers \
+-        --module-source "$MODULE_SRC/vboxnetadp" \
+-        --no-print-directory install 2>&1`; then
+-        log "Error building the module:"
+-        module_build_log "$myerr"
+-        failure "Look at $LOG to find out what went wrong"
+-    fi
+-    if test -e "$MODULE_SRC/vboxpci"; then
+-        log "Building the PCI pass-through module."
+-        if ! myerr=`$BUILDINTMP \
+-            --use-module-symvers /tmp/vboxdrv-Module.symvers \
+-            --module-source "$MODULE_SRC/vboxpci" \
+-            --no-print-directory install 2>&1`; then
+-            log "Error building the module:"
+-            module_build_log "$myerr"
+-            failure "Look at $LOG to find out what went wrong"
+-        fi
+-    fi
+-    rm -f /etc/vbox/module_not_compiled
+-    depmod -a
+-    sync
+-    succ_msg "VirtualBox kernel modules built"
+-    # Secure boot on Ubuntu and Debian.
+-    if test -n "$HAVE_SEC_BOOT" &&
+-        type update-secureboot-policy >/dev/null 2>&1; then
+-        SHIM_NOTRIGGER=y update-secureboot-policy --new-key
+-    fi
+-    if test -f "$DEB_PUB_KEY" && test -f "$DEB_PRIV_KEY"; then
+-        HAVE_DEB_KEY=true
+-        for i in $MODULE_LIST; do
+-            kmodsign sha512 /var/lib/shim-signed/mok/MOK.priv \
+-                /var/lib/shim-signed/mok/MOK.der \
+-                /lib/modules/"$KERN_VER"/misc/"$i".ko
+-        done
+-        # update-secureboot-policy "expects" DKMS modules.
+-        # Work around this and talk to the authors as soon
+-        # as possible to fix it.
+-        mkdir -p /var/lib/dkms/vbox-temp
+-        update-secureboot-policy --enroll-key 2>/dev/null ||
+-            begin_msg "Failed to enroll secure boot key." console
+-        rmdir -p /var/lib/dkms/vbox-temp 2>/dev/null
+-    fi
++   echo "Not implemented! Please use the virtualbox-kernel.SlackBuild available at SlackBuilds.org instead."
+ }
+ 
+ dmnstatus()
+@@ -642,20 +414,7 @@
      stop && start
      ;;
--setup)
+ setup)
 -    test -n "${2}" && export KERN_VER="${2}"
 -    # Create udev rule and USB device nodes.
 -    ## todo Wouldn't it make more sense to install the rule to /lib/udev?  This
@@ -205,14 +287,7 @@
 -cleanup)
 -    stop && cleanup
 -    cleanup_usb
--    ;;
++    setup
+     ;;
  force-reload)
      stop
-     start
-     ;;
--status)
--    dmnstatus
--    ;;
- *)
-     echo "Usage: $0 {start|stop|stop_vms|restart|force-reload|status}"
-     exit 1

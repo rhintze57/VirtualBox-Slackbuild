@@ -128,7 +128,7 @@ patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 patch -p1 -i $CWD/006-rdesktop-vrdp-keymap-path.patch
 
 # Fix "Unable to locate imported symbol 'memset'" error.
-patch -i $CWD/virtualbox-VBoxR0.diff
+#patch -i $CWD/virtualbox-VBoxR0.diff
 
 # Skip python2 detection and cheat about python-3.10 support
 sed -i 's|python2.7 python2.6 |python3.10 |' ./configure

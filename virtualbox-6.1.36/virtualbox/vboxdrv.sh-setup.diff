@@ -1,5 +1,5 @@
---- vboxdrv.sh.orig	2021-10-18 19:58:10.000000000 +0200
-+++ vboxdrv.sh	2021-10-30 20:36:29.483575169 +0200
+--- vboxdrv.sh.orig	2022-08-15 10:29:46.975044157 -0400
++++ vboxdrv.sh	2022-08-15 10:38:57.952783221 -0400
 @@ -61,23 +61,8 @@
  export USERNAME
  export USER=$USERNAME
@@ -156,16 +156,7 @@
  # Returns path to module file as seen by modinfo(8) or empty string.
  module_path()
  {
-@@ -415,8 +281,6 @@
-         mkdir -p -m 0750 /dev/vboxusb 2>/dev/null
-         chown root:vboxusers /dev/vboxusb 2>/dev/null
-     fi
--    # Remove any kernel modules left over from previously installed kernels.
--    cleanup only_old
-     succ_msg "VirtualBox services started"
- }
- 
-@@ -497,102 +361,10 @@
+@@ -497,113 +363,10 @@
      fi
  }
  
@@ -203,6 +194,17 @@
  {
 -    begin_msg "Building VirtualBox kernel modules" console
 -    log "Building the main VirtualBox module."
+-
+-    # Detect if kernel was built with clang.
+-    unset LLVM
+-    vbox_cc_is_clang=$(/lib/modules/"$KERN_VER"/build/scripts/config \
+-        --file /lib/modules/"$KERN_VER"/build/.config \
+-        --state CONFIG_CC_IS_CLANG 2>/dev/null)
+-    if test "${vbox_cc_is_clang}" = "y"; then
+-        log "Using clang compiler."
+-        export LLVM=1
+-    fi
+-
 -    if ! myerr=`$BUILDINTMP \
 -        --save-module-symvers /tmp/vboxdrv-Module.symvers \
 -        --module-source "$MODULE_SRC/vboxdrv" \
@@ -265,11 +267,11 @@
 -            begin_msg "Failed to enroll secure boot key." console
 -        rmdir -p /var/lib/dkms/vbox-temp 2>/dev/null
 -    fi
-+   echo "Not implemented! Please use the virtualbox-kernel.SlackBuild available at SlackBuilds.org instead."
++    echo "Not implemented! Please use the virtualbox-kernel.SlackBuild available at SlackBuilds.org instead."
  }
  
  dmnstatus()
-@@ -642,20 +414,7 @@
+@@ -653,20 +416,7 @@
      stop && start
      ;;
  setup)

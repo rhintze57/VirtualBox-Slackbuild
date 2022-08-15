@@ -1,8 +1,8 @@
 # slackware
 A collection of slackware goodies
 
-Slackbuild for virtualbox 6.1.34
-tested on slackware current. (with 5.15.17 testing or stock
+Slackbuild for virtualbox 6.1.36
+tested on slackware current. (with 5.18.17 testing or stock
 
 
 

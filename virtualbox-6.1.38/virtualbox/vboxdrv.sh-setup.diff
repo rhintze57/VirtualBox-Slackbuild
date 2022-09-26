@@ -1,5 +1,5 @@
---- vboxdrv.sh.orig	2022-08-15 10:29:46.975044157 -0400
-+++ vboxdrv.sh	2022-08-15 10:38:57.952783221 -0400
+--- vboxdrv.sh.orig	2022-09-26 11:22:34.399200428 -0400
++++ vboxdrv.sh	2022-09-26 11:30:59.823701079 -0400
 @@ -61,23 +61,8 @@
  export USERNAME
  export USER=$USERNAME
@@ -156,15 +156,15 @@
  # Returns path to module file as seen by modinfo(8) or empty string.
  module_path()
  {
-@@ -285,7 +285,7 @@
+@@ -416,7 +282,6 @@
          chown root:vboxusers /dev/vboxusb 2>/dev/null
      fi
      # Remove any kernel modules left over from previously installed kernels.
 -    cleanup only_old
-+    #cleanup only_old
      succ_msg "VirtualBox services started"
  }
-@@ -497,113 +363,10 @@
+ 
+@@ -497,113 +362,10 @@
      fi
  }
  
@@ -279,7 +279,7 @@
  }
  
  dmnstatus()
-@@ -653,20 +416,7 @@
+@@ -653,20 +415,7 @@
      stop && start
      ;;
  setup)

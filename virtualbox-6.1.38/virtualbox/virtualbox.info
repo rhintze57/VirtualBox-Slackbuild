@@ -1,12 +1,12 @@
 PRGNAM="virtualbox"
-VERSION="6.1.36"
+VERSION="6.1.38"
 HOMEPAGE="https://www.virtualbox.org"
 DOWNLOAD="UNSUPPORTED"
 MD5SUM=""
-DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/6.1.36/VirtualBox-6.1.36.tar.bz2 \
-          http://download.virtualbox.org/virtualbox/6.1.36/VBoxGuestAdditions_6.1.36.iso \
-          http://download.virtualbox.org/virtualbox/6.1.36/UserManual.pdf \
-          http://download.virtualbox.org/virtualbox/6.1.36/SDKRef.pdf"
+DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/6.1.38/VirtualBox-6.1.38.tar.bz2 \
+          http://download.virtualbox.org/virtualbox/6.1.38/VBoxGuestAdditions_6.1.38.iso \
+          http://download.virtualbox.org/virtualbox/6.1.38/UserManual.pdf \
+          http://download.virtualbox.org/virtualbox/6.1.38/SDKRef.pdf"
 MD5SUM_x86_64="07ec399edbfcb3d9f78918561420ae52 \
         387e722c9e8f3b6a5ef56df98011cea8 \
         9ed82a2290620c62450d1600b32850cc \

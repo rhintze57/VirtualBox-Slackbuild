@@ -7,10 +7,10 @@ DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/6.1.38/VirtualBox-6.1
           http://download.virtualbox.org/virtualbox/6.1.38/VBoxGuestAdditions_6.1.38.iso \
           http://download.virtualbox.org/virtualbox/6.1.38/UserManual.pdf \
           http://download.virtualbox.org/virtualbox/6.1.38/SDKRef.pdf"
-MD5SUM_x86_64="07ec399edbfcb3d9f78918561420ae52 \
-        387e722c9e8f3b6a5ef56df98011cea8 \
-        9ed82a2290620c62450d1600b32850cc \
-        5a4d97e2702aa2f96df5d1c7dae81ac8"
+MD5SUM_x86_64="77e164ca2a39fce9947d9c1e37771340 \
+        bd45e674aae88d1fb1f955055c40f17f \
+        a5b22efd0205709e42159980f6752172 \
+        ac24f3e5974559705ac3bb1c1c054e5f"
 REQUIRES="acpica virtualbox-kernel"
 MAINTAINER="Heinz Wiesinger"
 EMAIL="pprkut@slackbuilds.org"

@@ -156,6 +156,14 @@
  # Returns path to module file as seen by modinfo(8) or empty string.
  module_path()
  {
+@@ -285,7 +285,7 @@
+         chown root:vboxusers /dev/vboxusb 2>/dev/null
+     fi
+     # Remove any kernel modules left over from previously installed kernels.
+-    cleanup only_old
++    #cleanup only_old
+     succ_msg "VirtualBox services started"
+ }
 @@ -497,113 +363,10 @@
      fi
  }

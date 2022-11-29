@@ -1,170 +1,132 @@
---- vboxdrv.sh.orig	2022-09-26 11:22:34.399200428 -0400
-+++ vboxdrv.sh	2022-09-26 11:30:59.823701079 -0400
-@@ -61,23 +61,8 @@
- export USERNAME
- export USER=$USERNAME
+--- vboxdrv.sh_orig	2022-11-28 20:10:07.402013086 -0500
++++ vboxdrv.sh	2022-11-28 20:09:49.552193600 -0500
+@@ -92,31 +92,6 @@
+     *) unset DEB_KEY_ENROLLED;;
+ esac
  
--if test -n "${INSTALL_DIR}" && test -x "${INSTALL_DIR}/VirtualBox"; then
--    MODULE_SRC="${INSTALL_DIR}/src/vboxhost"
--elif test -x /usr/lib/virtualbox/VirtualBox; then
--    INSTALL_DIR=/usr/lib/virtualbox
--    MODULE_SRC="/usr/share/virtualbox/src/vboxhost"
--elif test -x "${SCRIPT_DIR}/VirtualBox"; then
--    # Executing from the build directory
--    INSTALL_DIR="${SCRIPT_DIR}"
--    MODULE_SRC="${INSTALL_DIR}/src"
--else
--    # Silently exit if the package was uninstalled but not purged.
--    # Applies to Debian packages only (but shouldn't hurt elsewhere)
--    exit 0
+-# Try to find a tool for modules signing.
+-SIGN_TOOL=$(which kmodsign 2>/dev/null)
+-# Attempt to use in-kernel signing tool if kmodsign not found.
+-if test -z "$SIGN_TOOL"; then
+-    if test -x "/lib/modules/$KERN_VER/build/scripts/sign-file"; then
+-        SIGN_TOOL="/lib/modules/$KERN_VER/build/scripts/sign-file"
+-    fi
 -fi
- VIRTUALBOX="${INSTALL_DIR}/VirtualBox"
- VBOXMANAGE="${INSTALL_DIR}/VBoxManage"
--BUILDINTMP="${MODULE_SRC}/build_in_tmp"
- if test -u "${VIRTUALBOX}"; then
-     GROUP=root
-     DEVICE_MODE=0600
-@@ -148,131 +133,12 @@
-     echo "${1}" >> "${LOG}"
+-
+-# Check if update-secureboot-policy tool supports required commandline options.
+-update_secureboot_policy_supports()
+-{
+-    opt_name="$1"
+-    [ -n "$opt_name" ] || return
+-
+-    [ -z "$(update-secureboot-policy --help 2>&1 | grep "$opt_name")" ] && return
+-    echo "1"
+-}
+-
+-HAVE_UPDATE_SECUREBOOT_POLICY_TOOL=
+-if type update-secureboot-policy >/dev/null 2>&1; then
+-    [ "$(update_secureboot_policy_supports new-key)" = "1" -a "$(update_secureboot_policy_supports enroll-key)" = "1" ] && \
+-        HAVE_UPDATE_SECUREBOOT_POLICY_TOOL=true
+-fi
+-
+ [ -r /etc/default/virtualbox ] && . /etc/default/virtualbox
+ 
+ # Preamble for Gentoo
+@@ -191,93 +166,6 @@
+     modinfo "$mod" 2>/dev/null | grep -e "^version:" | tr -s ' ' | cut -d " " -f3
  }
  
--module_build_log()
+-# Reads kernel configuration option.
+-kernel_get_config_opt()
 -{
--    setup_log
--    echo "${1}" | egrep -v \
--        "^test -e include/generated/autoconf.h|^echo >&2|^/bin/false\)$" \
--        >> "${LOG}"
--}
+-    opt_name="$1"
+-    [ -n "$opt_name" ] || return
 -
- # Detect VirtualBox version info or report error.
- VBOX_VERSION="`"$VBOXMANAGE" -v | cut -d r -f1`"
- [ -n "$VBOX_VERSION" ] || failure 'Cannot detect VirtualBox version number'
- VBOX_REVISION="r`"$VBOXMANAGE" -v | cut -d r -f2`"
- [ "$VBOX_REVISION" != "r" ] || failure 'Cannot detect VirtualBox revision number'
- 
--## Output the vboxdrv part of our udev rule.  This is redirected to the right file.
--udev_write_vboxdrv() {
--    VBOXDRV_GRP="$1"
--    VBOXDRV_MODE="$2"
--
--    echo "KERNEL==\"vboxdrv\", NAME=\"vboxdrv\", OWNER=\"root\", GROUP=\"$VBOXDRV_GRP\", MODE=\"$VBOXDRV_MODE\""
--    echo "KERNEL==\"vboxdrvu\", NAME=\"vboxdrvu\", OWNER=\"root\", GROUP=\"root\", MODE=\"0666\""
--    echo "KERNEL==\"vboxnetctl\", NAME=\"vboxnetctl\", OWNER=\"root\", GROUP=\"$VBOXDRV_GRP\", MODE=\"$VBOXDRV_MODE\""
--}
--
--## Output the USB part of our udev rule.  This is redirected to the right file.
--udev_write_usb() {
--    INSTALLATION_DIR="$1"
--    USB_GROUP="$2"
--
--    echo "SUBSYSTEM==\"usb_device\", ACTION==\"add\", RUN+=\"$INSTALLATION_DIR/VBoxCreateUSBNode.sh \$major \$minor \$attr{bDeviceClass}${USB_GROUP}\""
--    echo "SUBSYSTEM==\"usb\", ACTION==\"add\", ENV{DEVTYPE}==\"usb_device\", RUN+=\"$INSTALLATION_DIR/VBoxCreateUSBNode.sh \$major \$minor \$attr{bDeviceClass}${USB_GROUP}\""
--    echo "SUBSYSTEM==\"usb_device\", ACTION==\"remove\", RUN+=\"$INSTALLATION_DIR/VBoxCreateUSBNode.sh --remove \$major \$minor\""
--    echo "SUBSYSTEM==\"usb\", ACTION==\"remove\", ENV{DEVTYPE}==\"usb_device\", RUN+=\"$INSTALLATION_DIR/VBoxCreateUSBNode.sh --remove \$major \$minor\""
--}
--
--## Generate our udev rule file.  This takes a change in udev rule syntax in
--## version 55 into account.  It only creates rules for USB for udev versions
--## recent enough to support USB device nodes.
--generate_udev_rule() {
--    VBOXDRV_GRP="$1"      # The group owning the vboxdrv device
--    VBOXDRV_MODE="$2"     # The access mode for the vboxdrv device
--    INSTALLATION_DIR="$3" # The directory VirtualBox is installed in
--    USB_GROUP="$4"        # The group that has permission to access USB devices
--    NO_INSTALL="$5"       # Set this to "1" to remove but not re-install rules
--
--    # Extra space!
--    case "$USB_GROUP" in ?*) USB_GROUP=" $USB_GROUP" ;; esac
--    case "$NO_INSTALL" in "1") return ;; esac
--    udev_write_vboxdrv "$VBOXDRV_GRP" "$VBOXDRV_MODE"
--    udev_write_usb "$INSTALLATION_DIR" "$USB_GROUP"
--}
--
--## Install udev rule (disable with INSTALL_NO_UDEV=1 in
--## /etc/default/virtualbox).
--install_udev() {
--    VBOXDRV_GRP="$1"      # The group owning the vboxdrv device
--    VBOXDRV_MODE="$2"     # The access mode for the vboxdrv device
--    INSTALLATION_DIR="$3" # The directory VirtualBox is installed in
--    USB_GROUP="$4"        # The group that has permission to access USB devices
--    NO_INSTALL="$5"       # Set this to "1" to remove but not re-install rules
--
--    if test -d /etc/udev/rules.d; then
--        generate_udev_rule "$VBOXDRV_GRP" "$VBOXDRV_MODE" "$INSTALLATION_DIR" \
--                           "$USB_GROUP" "$NO_INSTALL"
--    fi
--    # Remove old udev description file
--    rm -f /etc/udev/rules.d/10-vboxdrv.rules 2> /dev/null
--}
--
--## Create a usb device node for a given sysfs path to a USB device.
--install_create_usb_node_for_sysfs() {
--    path="$1"           # sysfs path for the device
--    usb_createnode="$2" # Path to the USB device node creation script
--    usb_group="$3"      # The group to give ownership of the node to
--    if test -r "${path}/dev"; then
--        dev="`cat "${path}/dev" 2> /dev/null`"
--        major="`expr "$dev" : '\(.*\):' 2> /dev/null`"
--        minor="`expr "$dev" : '.*:\(.*\)' 2> /dev/null`"
--        class="`cat ${path}/bDeviceClass 2> /dev/null`"
--        sh "${usb_createnode}" "$major" "$minor" "$class" \
--              "${usb_group}" 2>/dev/null
+-    # Check if there is a kernel tool which can extract config option.
+-    if test -x /lib/modules/"$KERN_VER"/build/scripts/config; then
+-        /lib/modules/"$KERN_VER"/build/scripts/config \
+-            --file /lib/modules/"$KERN_VER"/build/.config \
+-            --state "$opt_name" 2>/dev/null
+-    elif test -f /lib/modules/"$KERN_VER"/build/.config; then
+-        # Extract config option manually.
+-        grep "$opt_name" /lib/modules/"$KERN_VER"/build/.config | sed -e "s/^$opt_name=//" -e "s/\"//g"
 -    fi
 -}
 -
--udev_rule_file=/etc/udev/rules.d/60-vboxdrv.rules
--sysfs_usb_devices="/sys/bus/usb/devices/*"
--
--## Install udev rules and create device nodes for usb access
--setup_usb() {
--    VBOXDRV_GRP="$1"      # The group that should own /dev/vboxdrv
--    VBOXDRV_MODE="$2"     # The mode to be used for /dev/vboxdrv
--    INSTALLATION_DIR="$3" # The directory VirtualBox is installed in
--    USB_GROUP="$4"        # The group that should own the /dev/vboxusb device
--                          # nodes unless INSTALL_NO_GROUP=1 in
--                          # /etc/default/virtualbox.  Optional.
--    usb_createnode="$INSTALLATION_DIR/VBoxCreateUSBNode.sh"
--    # install udev rule (disable with INSTALL_NO_UDEV=1 in
--    # /etc/default/virtualbox)
--    if [ "$INSTALL_NO_GROUP" != "1" ]; then
--        usb_group=$USB_GROUP
--        vboxdrv_group=$VBOXDRV_GRP
--    else
--        usb_group=root
--        vboxdrv_group=root
--    fi
--    install_udev "${vboxdrv_group}" "$VBOXDRV_MODE" \
--                 "$INSTALLATION_DIR" "${usb_group}" \
--                 "$INSTALL_NO_UDEV" > ${udev_rule_file}
--    # Build our device tree
--    for i in ${sysfs_usb_devices}; do  # This line intentionally without quotes.
--        install_create_usb_node_for_sysfs "$i" "${usb_createnode}" \
--                                          "${usb_group}"
--    done
--}
--
--cleanup_usb()
+-# Reads CONFIG_MODULE_SIG_HASH from kernel config.
+-kernel_module_sig_hash()
 -{
--    # Remove udev description file
--    rm -f /etc/udev/rules.d/60-vboxdrv.rules
--    rm -f /etc/udev/rules.d/10-vboxdrv.rules
--
--    # Remove our USB device tree
--    rm -rf /dev/vboxusb
+-    kernel_get_config_opt "CONFIG_MODULE_SIG_HASH"
 -}
 -
- # Returns path to module file as seen by modinfo(8) or empty string.
- module_path()
- {
-@@ -416,7 +282,6 @@
-         chown root:vboxusers /dev/vboxusb 2>/dev/null
-     fi
-     # Remove any kernel modules left over from previously installed kernels.
--    cleanup only_old
-     succ_msg "VirtualBox services started"
- }
- 
-@@ -497,113 +362,10 @@
+-# Returns "1" if kernel module signature hash algorithm
+-# is supported by us. Or empty string otherwise.
+-module_sig_hash_supported()
+-{
+-    sig_hashalgo="$1"
+-    [ -n "$sig_hashalgo" ] || return
+-
+-    # Go through supported list.
+-    [    "$sig_hashalgo" = "sha1"   \
+-      -o "$sig_hashalgo" = "sha224" \
+-      -o "$sig_hashalgo" = "sha256" \
+-      -o "$sig_hashalgo" = "sha384" \
+-      -o "$sig_hashalgo" = "sha512" ] || return
+-
+-    echo "1"
+-}
+-
+-# Returns "1" if module is signed and signature can be verified
+-# with public key provided in DEB_PUB_KEY. Or empty string otherwise.
+-module_signed()
+-{
+-    mod="$1"
+-    [ -n "$mod" ] || return
+-
+-    extraction_tool=/lib/modules/"$(uname -r)"/build/scripts/extract-module-sig.pl
+-    mod_path=$(module_path "$mod" 2>/dev/null)
+-    openssl_tool=$(which openssl 2>/dev/null)
+-    # Do not use built-in printf!
+-    printf_tool=$(which printf 2>/dev/null)
+-
+-    # Make sure all the tools required for signature validation are available.
+-    [ -x "$extraction_tool" ] || return
+-    [ -n "$mod_path"        ] || return
+-    [ -n "$openssl_tool"    ] || return
+-    [ -n "$printf_tool"     ] || return
+-
+-    # Make sure openssl can handle hash algorithm.
+-    sig_hashalgo=$(modinfo -F sig_hashalgo vboxdrv 2>/dev/null)
+-    [ "$(module_sig_hash_supported $sig_hashalgo)" = "1" ] || return
+-
+-    # Generate file names for temporary stuff.
+-    mod_pub_key=$(mktemp -u)
+-    mod_signature=$(mktemp -u)
+-    mod_unsigned=$(mktemp -u)
+-
+-    # Convert public key in DER format into X509 certificate form.
+-    "$openssl_tool" x509 -pubkey -inform DER -in "$DEB_PUB_KEY" -out "$mod_pub_key" 2>/dev/null
+-    # Extract raw module signature and convert it into binary format.
+-    "$printf_tool" \\x$(modinfo -F signature "$mod" | sed -z 's/[ \t\n]//g' | sed -e "s/:/\\\x/g") 2>/dev/null > "$mod_signature"
+-    # Extract unsigned module for further digest calculation.
+-    "$extraction_tool" -0 "$mod_path" 2>/dev/null > "$mod_unsigned"
+-
+-    # Verify signature.
+-    rc=""
+-    "$openssl_tool" dgst "-$sig_hashalgo" -binary -verify "$mod_pub_key" -signature "$mod_signature" "$mod_unsigned" 2>&1 >/dev/null && rc="1"
+-    # Clean up.
+-    rm -f $mod_pub_key $mod_signature $mod_unsigned
+-
+-    # Check result.
+-    [ "$rc" = "1" ] || return
+-
+-    echo "1"
+-}
+-
+ # Returns "1" if externally built module is available in the system and its
+ # version and revision number do match to current VirtualBox installation.
+ # Or empty string otherwise.
+@@ -479,153 +367,10 @@
      fi
  }
  
@@ -205,9 +167,7 @@
 -
 -    # Detect if kernel was built with clang.
 -    unset LLVM
--    vbox_cc_is_clang=$(/lib/modules/"$KERN_VER"/build/scripts/config \
--        --file /lib/modules/"$KERN_VER"/build/.config \
--        --state CONFIG_CC_IS_CLANG 2>/dev/null)
+-    vbox_cc_is_clang=$(kernel_get_config_opt "CONFIG_MODULE_SIG_HASH")
 -    if test "${vbox_cc_is_clang}" = "y"; then
 -        log "Using clang compiler."
 -        export LLVM=1
@@ -255,49 +215,69 @@
 -    depmod -a
 -    sync
 -    succ_msg "VirtualBox kernel modules built"
--    # Secure boot on Ubuntu and Debian.
--    if test -n "$HAVE_SEC_BOOT" &&
--        type update-secureboot-policy >/dev/null 2>&1; then
--        SHIM_NOTRIGGER=y update-secureboot-policy --new-key
--    fi
--    if test -f "$DEB_PUB_KEY" && test -f "$DEB_PRIV_KEY"; then
--        HAVE_DEB_KEY=true
+-
+-    # Secure boot on Ubuntu, Debian and Oracle Linux.
+-    if test -n "$HAVE_SEC_BOOT"; then
+-        begin_msg "Signing VirtualBox kernel modules" console
+-
+-        # Generate new signing key if needed.
+-        [ -n "$HAVE_UPDATE_SECUREBOOT_POLICY_TOOL" ] && SHIM_NOTRIGGER=y update-secureboot-policy --new-key
+-
+-        # Check if signing keys are in place.
+-        if test ! -f "$DEB_PUB_KEY" || ! test -f "$DEB_PRIV_KEY"; then
+-            # update-secureboot-policy tool present in the system, but keys were not generated.
+-            [ -n "$HAVE_UPDATE_SECUREBOOT_POLICY_TOOL" ] && fail_msg "
+-
+-update-secureboot-policy tool does not generate signing keys
+-in your distribution, see below on how to generate them manually
+-"
+-
+-            # update-secureboot-policy not present in the system, recommend generate keys manually.
+-            failure "
+-
+-System is running in Secure Boot mode, however your distribution
+-does not provide tools for automatic generation of keys needed for
+-modules signing. Please consider to generate and enroll them manually:
+-
+-    sudo mkdir -p /var/lib/shim-signed/mok
+-    sudo openssl req -nodes -new -x509 -newkey rsa:2048 -outform DER -keyout $DEB_PRIV_KEY -out $DEB_PUB_KEY
+-    sudo sudo mokutil --import $DEB_PUB_KEY
+-    sudo reboot
+-
+-Restart \"rcvboxdrv setup\" after system is rebooted
+-"
+-        fi
+-
+-        # Check if signing tool is available.
+-        [ -n "$SIGN_TOOL" ] || failure "Unable to find signing tool"
+-
+-        # Get kernel signature hash algorithm from kernel config and validate it.
+-        sig_hashalgo=$(kernel_module_sig_hash)
+-        [ "$(module_sig_hash_supported $sig_hashalgo)" = "1" ] \
+-            || failure "Unsupported kernel signature hash algorithm $sig_hashalgo"
+-
+-        # Sign modules.
 -        for i in $MODULE_LIST; do
--            kmodsign sha512 /var/lib/shim-signed/mok/MOK.priv \
--                /var/lib/shim-signed/mok/MOK.der \
--                /lib/modules/"$KERN_VER"/misc/"$i".ko
+-            "$SIGN_TOOL" "$sig_hashalgo" "$DEB_PRIV_KEY" "$DEB_PUB_KEY" \
+-                /lib/modules/"$KERN_VER"/misc/"$i".ko 2>/dev/null || failure "Unable to sign $i.ko"
 -        done
--        # update-secureboot-policy "expects" DKMS modules.
--        # Work around this and talk to the authors as soon
--        # as possible to fix it.
--        mkdir -p /var/lib/dkms/vbox-temp
--        update-secureboot-policy --enroll-key 2>/dev/null ||
--            begin_msg "Failed to enroll secure boot key." console
--        rmdir -p /var/lib/dkms/vbox-temp 2>/dev/null
+-
+-        # Enroll signing key if needed.
+-        if test -n "$HAVE_UPDATE_SECUREBOOT_POLICY_TOOL"; then
+-            # update-secureboot-policy "expects" DKMS modules.
+-            # Work around this and talk to the authors as soon
+-            # as possible to fix it.
+-            mkdir -p /var/lib/dkms/vbox-temp
+-            update-secureboot-policy --enroll-key 2>/dev/null ||
+-                begin_msg "Failed to enroll secure boot key." console
+-            rmdir -p /var/lib/dkms/vbox-temp 2>/dev/null
+-
+-            # Indicate that key has been enrolled and reboot is needed.
+-            HAVE_DEB_KEY=true
+-        fi
+-        succ_msg "Signing completed"
 -    fi
 +    echo "Not implemented! Please use the virtualbox-kernel.SlackBuild available at SlackBuilds.org instead."
  }
  
  dmnstatus()
-@@ -653,20 +415,7 @@
-     stop && start
-     ;;
- setup)
--    test -n "${2}" && export KERN_VER="${2}"
--    # Create udev rule and USB device nodes.
--    ## todo Wouldn't it make more sense to install the rule to /lib/udev?  This
--    ## is not a user-created configuration file after all.
--    ## todo Do we need a udev rule to create /dev/vboxdrv[u] at all?  We have
--    ## working fall-back code here anyway, and the "right" code is more complex
--    ## than the fall-back.  Unnecessary duplication?
--    stop && cleanup
--    setup_usb "$GROUP" "$DEVICE_MODE" "$INSTALL_DIR"
--    start
--    ;;
--cleanup)
--    stop && cleanup
--    cleanup_usb
-+    setup
-     ;;
- force-reload)
-     stop

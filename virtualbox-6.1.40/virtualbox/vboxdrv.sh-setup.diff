@@ -1,6 +1,6 @@
---- vboxdrv.sh_orig	2022-11-28 20:10:07.402013086 -0500
-+++ vboxdrv.sh	2022-11-28 20:09:49.552193600 -0500
-@@ -92,31 +92,6 @@
+--- vboxdrv.sh_stock	2022-11-29 22:09:33.568292536 -0500
++++ vboxdrv.sh	2022-11-29 22:13:56.025371924 -0500
+@@ -107,31 +107,6 @@
      *) unset DEB_KEY_ENROLLED;;
  esac
  
@@ -32,7 +32,7 @@
  [ -r /etc/default/virtualbox ] && . /etc/default/virtualbox
  
  # Preamble for Gentoo
-@@ -191,93 +166,6 @@
+@@ -325,93 +300,6 @@
      modinfo "$mod" 2>/dev/null | grep -e "^version:" | tr -s ' ' | cut -d " " -f3
  }
  
@@ -126,7 +126,15 @@
  # Returns "1" if externally built module is available in the system and its
  # version and revision number do match to current VirtualBox installation.
  # Or empty string otherwise.
-@@ -479,153 +367,10 @@
+@@ -533,7 +421,6 @@
+         chown root:vboxusers /dev/vboxusb 2>/dev/null
+     fi
+     # Remove any kernel modules left over from previously installed kernels.
+-    cleanup only_old
+     succ_msg "VirtualBox services started"
+ }
+ 
+@@ -614,153 +501,10 @@
      fi
  }
  

@@ -27,9 +27,9 @@ cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-6.1.40}
+VERSION=${VERSION:-7.0.6}
 BUILD=${BUILD:-1}
-TAG=${TAG:-_SBo}
+TAG=${TAG:-_rah}
 PKGTYPE=${PKGTYPE:-tgz}
 
 if [ -z "$ARCH" ]; then
@@ -125,7 +125,7 @@ MODE="755"
 patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 
 # Fix wrong path to rdesktop-vrdp-keymaps
-patch -p1 -i $CWD/006-rdesktop-vrdp-keymap-path.patch
+#patch -p1 -i $CWD/006-rdesktop-vrdp-keymap-path.patch
 
 # Fix "Unable to locate imported symbol 'memset'" error.
 #patch -i $CWD/virtualbox-VBoxR0.diff
@@ -205,8 +205,8 @@ cd out/linux.$BUILDDIR/release/bin/
   mv sdk $PKG/usr/share/virtualbox/
   install -m $MODE -g $GROUP VBoxSysInfo.sh $PKG/usr/share/virtualbox/
   install -m $MODE -g $GROUP VBoxCreateUSBNode.sh $PKG/usr/share/virtualbox/
-  install -m $MODE -g $GROUP VBoxTunctl $PKG/usr/bin/
-  rm -f VBoxSysInfo.sh VBoxCreateUSBNode.sh VBoxTunctl
+  #install -m $MODE -g $GROUP VBoxTunctl $PKG/usr/bin/
+  rm -f VBoxSysInfo.sh VBoxCreateUSBNode.sh   #  VBoxTunctl
   mv * $PKG/usr/lib$LIBDIRSUFFIX/virtualbox/
   chown -R root:$GROUP $PKG/usr/lib$LIBDIRSUFFIX/virtualbox/
   chmod -R $MODE $PKG/usr/lib$LIBDIRSUFFIX/virtualbox/
@@ -240,7 +240,7 @@ if [ "$vboxwebsrv" = "vboxwebsrv" ]; then
   sed -i "s/\[ -z \"\$DEBIAN\"/#\[ -z \"\$DEBIAN\"/" $PKG/etc/rc.d/rc.vboxweb-service.new
 fi
 
-for i in VBoxHeadless VirtualBoxVM VBoxSDL VBoxNetDHCP VBoxNetAdpCtl VBoxNetNAT; do
+for i in VBoxHeadless VirtualBoxVM VBoxNetDHCP VBoxNetAdpCtl VBoxNetNAT; do
   chmod 4711 $PKG/usr/lib$LIBDIRSUFFIX/virtualbox/$i
 done
 

@@ -1,8 +1,8 @@
 # slackware
 A collection of slackware goodies
 
-Slackbuild for virtualbox 7.0.6
-tested on slackware current. (with 6.1.19 testing or stock
+Slackbuild for virtualbox 7.0.8
+tested on slackware current. (with 6.1.38 testing or stock
 
 
 
@@ -21,5 +21,5 @@ To download the need source files run this: (in each folder)
 I use :
 ```
 HARDENING=yes ./virtualbox.SlackBuild
-KERNEL=5.1.19 HARDENING=yes ./virtualbox-kernel.SlackBuild
+KERNEL=6.1.38 HARDENING=yes ./virtualbox-kernel.SlackBuild
 ```

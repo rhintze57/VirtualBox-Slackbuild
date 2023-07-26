@@ -1,6 +1,6 @@
---- vboxdrv.sh_stock	2023-03-14 21:01:35.329737171 -0400
-+++ vboxdrv.sh	2023-03-14 21:59:34.383319137 -0400
-@@ -316,93 +316,6 @@
+--- vboxdrv.sh_stock	2023-07-26 17:25:40.504178111 -0400
++++ vboxdrv.sh	2023-07-26 17:32:38.915526199 -0400
+@@ -341,80 +341,6 @@
      modinfo "$mod" 2>/dev/null | grep -e "^version:" | tr -s ' ' | cut -d " " -f3
  }
  
@@ -17,7 +17,7 @@
 -            --state "$opt_name" 2>/dev/null
 -    elif test -f /lib/modules/"$KERN_VER"/build/.config; then
 -        # Extract config option manually.
--        grep "$opt_name" /lib/modules/"$KERN_VER"/build/.config | sed -e "s/^$opt_name=//" -e "s/\"//g"
+-        grep "$opt_name=" /lib/modules/"$KERN_VER"/build/.config | sed -e "s/^$opt_name=//" -e "s/\"//g"
 -    fi
 -}
 -
@@ -44,57 +44,44 @@
 -    echo "1"
 -}
 -
--# Returns "1" if module is signed and signature can be verified
--# with public key provided in DEB_PUB_KEY. Or empty string otherwise.
--module_signed()
+-# Check if kernel configuration requires modules signature.
+-kernel_requires_module_signature()
 -{
--    mod="$1"
--    [ -n "$mod" ] || return
+-    vbox_sys_lockdown_path="/sys/kernel/security/lockdown"
 -
--    extraction_tool=/lib/modules/"$(uname -r)"/build/scripts/extract-module-sig.pl
--    mod_path=$(module_path "$mod" 2>/dev/null)
--    openssl_tool=$(which openssl 2>/dev/null)
--    # Do not use built-in printf!
--    printf_tool=$(which printf 2>/dev/null)
+-    requires=""
+-    # We consider that if kernel is running in the following configurations,
+-    # it will require modules to be signed.
+-    if [ "$(kernel_get_config_opt "CONFIG_MODULE_SIG")" = "y" ]; then
 -
--    # Make sure all the tools required for signature validation are available.
--    [ -x "$extraction_tool" ] || return
--    [ -n "$mod_path"        ] || return
--    [ -n "$openssl_tool"    ] || return
--    [ -n "$printf_tool"     ] || return
+-        # Modules signature verification is hardcoded in kernel config.
+-        [ "$(kernel_get_config_opt "CONFIG_MODULE_SIG_FORCE")" = "y" ] && requires="1"
 -
--    # Make sure openssl can handle hash algorithm.
--    sig_hashalgo=$(modinfo -F sig_hashalgo "$mod" 2>/dev/null)
--    [ "$(module_sig_hash_supported $sig_hashalgo)" = "1" ] || return
+-        # Unsigned modules loading is restricted by "lockdown" feature in runtime.
+-        if [   "$(kernel_get_config_opt "CONFIG_LOCK_DOWN_KERNEL")" = "y" \
+-            -o "$(kernel_get_config_opt "CONFIG_SECURITY_LOCKDOWN_LSM")" = "y" \
+-            -o "$(kernel_get_config_opt "CONFIG_SECURITY_LOCKDOWN_LSM_EARLY")" = "y" ]; then
 -
--    # Generate file names for temporary stuff.
--    mod_pub_key=$(mktemp -u)
--    mod_signature=$(mktemp -u)
--    mod_unsigned=$(mktemp -u)
+-            # Once lockdown level is set to something different than "none" (e.g., "integrity"
+-            # or "confidentiality"), kernel will reject unsigned modules loading.
+-            if [ -r "$vbox_sys_lockdown_path" ]; then
+-                [ -n "$(cat "$vbox_sys_lockdown_path" | grep "\[integrity\]")" ] && requires="1"
+-                [ -n "$(cat "$vbox_sys_lockdown_path" | grep "\[confidentiality\]")" ] && requires="1"
+-            fi
 -
--    # Convert public key in DER format into X509 certificate form.
--    "$openssl_tool" x509 -pubkey -inform DER -in "$DEB_PUB_KEY" -out "$mod_pub_key" 2>/dev/null
--    # Extract raw module signature and convert it into binary format.
--    "$printf_tool" \\x$(modinfo -F signature "$mod" | sed -z 's/[ \t\n]//g' | sed -e "s/:/\\\x/g") 2>/dev/null > "$mod_signature"
--    # Extract unsigned module for further digest calculation.
--    "$extraction_tool" -0 "$mod_path" 2>/dev/null > "$mod_unsigned"
+-            # This configuration is used by a number of modern Linux distributions and restricts
+-            # unsigned modules loading when Secure Boot mode is enabled.
+-            [ "$(kernel_get_config_opt "CONFIG_LOCK_DOWN_IN_EFI_SECURE_BOOT")" = "y" -a -n "$HAVE_SEC_BOOT" ] && requires="1"
+-        fi
+-    fi
 -
--    # Verify signature.
--    rc=""
--    "$openssl_tool" dgst "-$sig_hashalgo" -binary -verify "$mod_pub_key" -signature "$mod_signature" "$mod_unsigned" 2>&1 >/dev/null && rc="1"
--    # Clean up.
--    rm -f $mod_pub_key $mod_signature $mod_unsigned
--
--    # Check result.
--    [ "$rc" = "1" ] || return
--
--    echo "1"
+-    [ -n "$requires" ] && echo "1"
 -}
 -
- # Returns "1" if externally built module is available in the system and its
- # version and revision number do match to current VirtualBox installation.
- # Or empty string otherwise.
-@@ -604,153 +517,10 @@
+ # Returns "1" if module is signed and signature can be verified
+ # with public key provided in DEB_PUB_KEY. Or empty string otherwise.
+ module_signed()
+@@ -673,153 +599,10 @@
      fi
  }
  
@@ -159,7 +146,7 @@
 -        module_build_log "$myerr"
 -        failure "Look at $LOG to find out what went wrong"
 -    fi
--    log "Building the net adaptor module."
+-    log "Building the net adapter module."
 -    if ! myerr=`$BUILDINTMP \
 -        --use-module-symvers /tmp/vboxdrv-Module.symvers \
 -        --module-source "$MODULE_SRC/vboxnetadp" \
@@ -184,8 +171,8 @@
 -    sync
 -    succ_msg "VirtualBox kernel modules built"
 -
--    # Secure boot on Ubuntu, Debian and Oracle Linux.
--    if test -n "$HAVE_SEC_BOOT"; then
+-    # Sign kernel modules if kernel configuration requires it.
+-    if test "$(kernel_requires_module_signature)" = "1"; then
 -        begin_msg "Signing VirtualBox kernel modules" console
 -
 -        # Generate new signing key if needed.
@@ -249,3 +236,19 @@
  }
  
  dmnstatus()
+@@ -876,14 +659,10 @@
+     ## todo Do we need a udev rule to create /dev/vboxdrv[u] at all?  We have
+     ## working fall-back code here anyway, and the "right" code is more complex
+     ## than the fall-back.  Unnecessary duplication?
+-    stop && cleanup
++    stop
+     setup_usb "$GROUP" "$DEVICE_MODE" "$INSTALL_DIR"
+     start
+     ;;
+-cleanup)
+-    stop && cleanup
+-    cleanup_usb
+-    ;;
+ force-reload)
+     stop
+     start

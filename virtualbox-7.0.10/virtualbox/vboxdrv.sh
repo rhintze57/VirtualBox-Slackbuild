@@ -3,7 +3,7 @@
 # Linux kernel module init script
 
 #
-# Copyright (C) 2006-2022 Oracle and/or its affiliates.
+# Copyright (C) 2006-2023 Oracle and/or its affiliates.
 #
 # This file is part of VirtualBox base platform packages, as
 # available from https://www.virtualbox.org.
@@ -122,6 +122,31 @@ case "`mokutil --test-key "$DEB_PUB_KEY" 2>/dev/null`" in
     *"is already"*) DEB_KEY_ENROLLED=true;;
     *) unset DEB_KEY_ENROLLED;;
 esac
+
+# Try to find a tool for modules signing.
+SIGN_TOOL=$(which kmodsign 2>/dev/null)
+# Attempt to use in-kernel signing tool if kmodsign not found.
+if test -z "$SIGN_TOOL"; then
+    if test -x "/lib/modules/$KERN_VER/build/scripts/sign-file"; then
+        SIGN_TOOL="/lib/modules/$KERN_VER/build/scripts/sign-file"
+    fi
+fi
+
+# Check if update-secureboot-policy tool supports required commandline options.
+update_secureboot_policy_supports()
+{
+    opt_name="$1"
+    [ -n "$opt_name" ] || return
+
+    [ -z "$(update-secureboot-policy --help 2>&1 | grep "$opt_name")" ] && return
+    echo "1"
+}
+
+HAVE_UPDATE_SECUREBOOT_POLICY_TOOL=
+if type update-secureboot-policy >/dev/null 2>&1; then
+    [ "$(update_secureboot_policy_supports new-key)" = "1" -a "$(update_secureboot_policy_supports enroll-key)" = "1" ] && \
+        HAVE_UPDATE_SECUREBOOT_POLICY_TOOL=true
+fi
 
 [ -r /etc/default/virtualbox ] && . /etc/default/virtualbox
 
@@ -316,6 +341,62 @@ module_revision()
     modinfo "$mod" 2>/dev/null | grep -e "^version:" | tr -s ' ' | cut -d " " -f3
 }
 
+# Returns "1" if module is signed and signature can be verified
+# with public key provided in DEB_PUB_KEY. Or empty string otherwise.
+module_signed()
+{
+    mod="$1"
+    [ -n "$mod" ] || return
+
+    # Be nice with distributions which do not provide tools which we
+    # use in order to verify module signature. This variable needs to
+    # be explicitly set by administrator. This script will look for it
+    # in /etc/vbox/vbox.cfg. Make sure that you know what you do!
+    if [ "$VBOX_BYPASS_MODULES_SIGNATURE_CHECK" = "1" ]; then
+        echo "1"
+        return
+    fi
+
+    extraction_tool=/lib/modules/"$(uname -r)"/build/scripts/extract-module-sig.pl
+    mod_path=$(module_path "$mod" 2>/dev/null)
+    openssl_tool=$(which openssl 2>/dev/null)
+    # Do not use built-in printf!
+    printf_tool=$(which printf 2>/dev/null)
+
+    # Make sure all the tools required for signature validation are available.
+    [ -x "$extraction_tool" ] || return
+    [ -n "$mod_path"        ] || return
+    [ -n "$openssl_tool"    ] || return
+    [ -n "$printf_tool"     ] || return
+
+    # Make sure openssl can handle hash algorithm.
+    sig_hashalgo=$(modinfo -F sig_hashalgo "$mod" 2>/dev/null)
+    [ "$(module_sig_hash_supported $sig_hashalgo)" = "1" ] || return
+
+    # Generate file names for temporary stuff.
+    mod_pub_key=$(mktemp -u)
+    mod_signature=$(mktemp -u)
+    mod_unsigned=$(mktemp -u)
+
+    # Convert public key in DER format into X509 certificate form.
+    "$openssl_tool" x509 -pubkey -inform DER -in "$DEB_PUB_KEY" -out "$mod_pub_key" 2>/dev/null
+    # Extract raw module signature and convert it into binary format.
+    "$printf_tool" \\x$(modinfo -F signature "$mod" | sed -z 's/[ \t\n]//g' | sed -e "s/:/\\\x/g") 2>/dev/null > "$mod_signature"
+    # Extract unsigned module for further digest calculation.
+    "$extraction_tool" -0 "$mod_path" 2>/dev/null > "$mod_unsigned"
+
+    # Verify signature.
+    rc=""
+    "$openssl_tool" dgst "-$sig_hashalgo" -binary -verify "$mod_pub_key" -signature "$mod_signature" "$mod_unsigned" 2>&1 >/dev/null && rc="1"
+    # Clean up.
+    rm -f $mod_pub_key $mod_signature $mod_unsigned
+
+    # Check result.
+    [ "$rc" = "1" ] || return
+
+    echo "1"
+}
+
 # Returns "1" if externally built module is available in the system and its
 # version and revision number do match to current VirtualBox installation.
 # Or empty string otherwise.
@@ -345,8 +426,8 @@ module_available()
     mod_dir="$(dirname "$mod_path" | sed 's;^.*/;;')"
     [ "$mod_dir" = "misc" ] || return
 
-    # In case if system is running in Secure Boot mode, check if module is signed.
-    if test -n "$HAVE_SEC_BOOT"; then
+    # In case if kernel configuration requires module signature, check if module is signed.
+    if test "$(kernel_requires_module_signature)" = "1"; then
         [ "$(module_signed "$mod")" = "1" ] || return
     fi
 
@@ -370,7 +451,7 @@ start()
     if [ -d /proc/xen ]; then
         failure "Running VirtualBox in a Xen environment is not supported"
     fi
-    if test -n "$HAVE_SEC_BOOT" && test -z "$DEB_KEY_ENROLLED"; then
+    if test "$(kernel_requires_module_signature)" = "1" && test -z "$DEB_KEY_ENROLLED"; then
         if test -n "$HAVE_DEB_KEY"; then
             begin_msg "You must re-start your system to finish Debian secure boot set-up." console
         else
@@ -431,12 +512,13 @@ See the documentation for your Linux distribution." console
         failure "modprobe vboxpci failed. Please use 'dmesg' to find out why"
     fi
     # Create the /dev/vboxusb directory if the host supports that method
-    # of USB access.  The USB code checks for the existance of that path.
+    # of USB access.  The USB code checks for the existence of that path.
     if grep -q usb_device /proc/devices; then
         mkdir -p -m 0750 /dev/vboxusb 2>/dev/null
         chown root:vboxusers /dev/vboxusb 2>/dev/null
     fi
     # Remove any kernel modules left over from previously installed kernels.
+    cleanup only_old
     succ_msg "VirtualBox services started"
 }
 
@@ -577,13 +659,9 @@ setup)
     ## todo Do we need a udev rule to create /dev/vboxdrv[u] at all?  We have
     ## working fall-back code here anyway, and the "right" code is more complex
     ## than the fall-back.  Unnecessary duplication?
-    stop && cleanup
+    stop
     setup_usb "$GROUP" "$DEVICE_MODE" "$INSTALL_DIR"
     start
-    ;;
-cleanup)
-    stop && cleanup
-    cleanup_usb
     ;;
 force-reload)
     stop

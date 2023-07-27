@@ -517,8 +517,6 @@ See the documentation for your Linux distribution." console
         mkdir -p -m 0750 /dev/vboxusb 2>/dev/null
         chown root:vboxusers /dev/vboxusb 2>/dev/null
     fi
-    # Remove any kernel modules left over from previously installed kernels.
-    cleanup only_old
     succ_msg "VirtualBox services started"
 }
 

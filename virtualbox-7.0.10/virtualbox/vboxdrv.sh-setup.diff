@@ -1,5 +1,5 @@
---- vboxdrv.sh_stock	2023-07-26 17:25:40.504178111 -0400
-+++ vboxdrv.sh	2023-07-26 17:32:38.915526199 -0400
+--- vboxdrv.sh_stock	2023-07-26 21:11:42.664539679 -0400
++++ vboxdrv.sh	2023-07-26 22:45:05.959836218 -0400
 @@ -341,80 +341,6 @@
      modinfo "$mod" 2>/dev/null | grep -e "^version:" | tr -s ' ' | cut -d " " -f3
  }
@@ -81,7 +81,16 @@
  # Returns "1" if module is signed and signature can be verified
  # with public key provided in DEB_PUB_KEY. Or empty string otherwise.
  module_signed()
-@@ -673,153 +599,10 @@
+@@ -591,8 +517,6 @@
+         mkdir -p -m 0750 /dev/vboxusb 2>/dev/null
+         chown root:vboxusers /dev/vboxusb 2>/dev/null
+     fi
+-    # Remove any kernel modules left over from previously installed kernels.
+-    cleanup only_old
+     succ_msg "VirtualBox services started"
+ }
+ 
+@@ -673,153 +597,10 @@
      fi
  }
  
@@ -236,7 +245,7 @@
  }
  
  dmnstatus()
-@@ -876,14 +659,10 @@
+@@ -876,14 +657,10 @@
      ## todo Do we need a udev rule to create /dev/vboxdrv[u] at all?  We have
      ## working fall-back code here anyway, and the "right" code is more complex
      ## than the fall-back.  Unnecessary duplication?

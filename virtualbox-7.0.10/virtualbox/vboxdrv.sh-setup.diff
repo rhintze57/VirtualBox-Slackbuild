@@ -1,5 +1,5 @@
 --- vboxdrv.sh_stock	2023-07-26 21:11:42.664539679 -0400
-+++ vboxdrv.sh	2023-07-26 22:45:05.959836218 -0400
++++ vboxdrv.sh	2023-07-26 23:06:19.981198611 -0400
 @@ -341,80 +341,6 @@
      modinfo "$mod" 2>/dev/null | grep -e "^version:" | tr -s ' ' | cut -d " " -f3
  }
@@ -261,3 +261,12 @@
  force-reload)
      stop
      start
+@@ -892,7 +669,7 @@
+     dmnstatus
+     ;;
+ *)
+-    echo "Usage: $0 {start|stop|stop_vms|restart|setup|cleanup|force-reload|status}"
++    echo "Usage: $0 {start|stop|stop_vms|restart|setup|force-reload|status}"
+     exit 1
+ esac
+ 

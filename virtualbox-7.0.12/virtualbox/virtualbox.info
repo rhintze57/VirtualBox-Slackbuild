@@ -1,0 +1,17 @@
+PRGNAM="virtualbox"
+VERSION="7.0.12"
+HOMEPAGE="https://www.virtualbox.org"
+DOWNLOAD="UNSUPPORTED"
+MD5SUM=""
+DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/7.0.12/VirtualBox-7.0.12.tar.bz2 \
+          http://download.virtualbox.org/virtualbox/7.0.12/VBoxGuestAdditions_7.0.12.iso \
+          http://download.virtualbox.org/virtualbox/7.0.12/UserManual.pdf \
+          http://download.virtualbox.org/virtualbox/7.0.12/SDKRef.pdf"
+MD5SUM_x86_64="b89fb26c765764ee0e2d14305c0411d5 \
+               beedd5530d469b38079e4fe066d1ef32 \
+               d73f35546e98491357fdf0362b697545 \
+               09ea32f2699fde9cc9d652f69d89525f"
+
+REQUIRES="acpica virtualbox-kernel"
+MAINTAINER="Heinz Wiesinger"
+EMAIL="pprkut@slackbuilds.org"

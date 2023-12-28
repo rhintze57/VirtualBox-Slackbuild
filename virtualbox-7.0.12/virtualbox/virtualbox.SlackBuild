@@ -97,7 +97,7 @@ elif [ "$ARCH" = "i686" ]; then
   LIBDIRSUFFIX=""
   BUILDDIR="x86"
 elif [ "$ARCH" = "x86_64" ]; then
-  SLKCFLAGS="-O2 -fPIC"
+  SLKCFLAGS="-fPIC -march=native -O2 -pipe -fomit-frame-pointer"
   LIBDIRSUFFIX="64"
   BUILDDIR="amd64"
 fi
@@ -125,7 +125,10 @@ MODE="755"
 patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 
 # patch to fix gcc13 and dxvk-native-1.92a
-patch -p1 -i $CWD/virtualbox-gcc13_cstdint.patch
+#patch -p1 -i $CWD/virtualbox-gcc13_cstdint.patch
+
+# Fix wrong path to rdesktop-vrdp-keymaps
+#patch -p1 -i $CWD/patch/0009-VBoxNetFlt-linux.c.patch
 
 # Fix wrong path to rdesktop-vrdp-keymaps
 #patch -p1 -i $CWD/006-rdesktop-vrdp-keymap-path.patch

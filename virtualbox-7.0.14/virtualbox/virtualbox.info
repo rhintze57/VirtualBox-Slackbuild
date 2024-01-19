@@ -1,0 +1,16 @@
+PRGNAM="virtualbox"
+VERSION="7.0.14"
+HOMEPAGE="https://www.virtualbox.org"
+DOWNLOAD="UNSUPPORTED"
+MD5SUM=""
+DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/7.0.14/VirtualBox-7.0.14.tar.bz2 \
+          http://download.virtualbox.org/virtualbox/7.0.14/VBoxGuestAdditions_7.0.14.iso \
+          http://download.virtualbox.org/virtualbox/7.0.14/UserManual.pdf \
+          http://download.virtualbox.org/virtualbox/7.0.14/SDKRef.pdf"
+MD5SUM_x86_64=" \
+                \
+                \
+               "
+REQUIRES="acpica virtualbox-kernel"
+MAINTAINER="Heinz Wiesinger"
+EMAIL="pprkut@slackbuilds.org"

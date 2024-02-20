@@ -1,5 +1,5 @@
---- VirtualBox-7.0.14/src/VBox/Runtime/r3/xml.cpp b/src/VBox/Runtime/r3/xml.cpp.orig	2024-02-20 00:46:46.198174379 -0500
-+++ VirtualBox-7.0.14/src/VBox/Runtime/r3/xml.cpp b/src/VBox/Runtime/r3/xml.cpp	2024-02-20 00:51:45.809461900 -0500
+--- VirtualBox-7.0.14/src/VBox/Runtime/r3/xml.cpp.orig	2024-02-20 00:46:46.198174379 -0500
++++ VirtualBox-7.0.14/src/VBox/Runtime/r3/xml.cpp	2024-02-20 00:51:45.809461900 -0500
 @@ -131,7 +131,7 @@
      RTStrFree(msg);
  }

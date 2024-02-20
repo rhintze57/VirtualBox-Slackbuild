@@ -1,5 +1,5 @@
---- VirtualBox-7.0.14/include/iprt/cpp/xml.h b/include/iprt/cpp/xml.h.orig	2024-02-20 00:43:16.416959914 -0500
-+++ VirtualBox-7.0.14/include/iprt/cpp/xml.h b/include/iprt/cpp/xml.h	2024-02-20 00:46:03.791130249 -0500
+--- VirtualBox-7.0.14/include/iprt/cpp/xml.h.orig	2024-02-20 00:43:16.416959914 -0500
++++ VirtualBox-7.0.14/include/iprt/cpp/xml.h 	2024-02-20 00:46:03.791130249 -0500
 @@ -113,9 +113,9 @@
  class RT_DECL_CLASS XmlError : public RuntimeError
  {

@@ -27,7 +27,7 @@ cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-7.0.10}
+VERSION=${VERSION:-7.0.14}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 PKGTYPE=${PKGTYPE:-tgz}
@@ -126,6 +126,10 @@ patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 
 # patch to fix gcc13 and dxvk-native-1.92a
 patch -p1 -i $CWD/virtualbox-gcc13_cstdint.patch
+
+# patch libxml-2.12
+patch -p1 -i $CWD/libxml-2.12_h.patch
+patch -p1 -i $CWD/libxml-2.12_cpp.patch
 
 # Fix wrong path to rdesktop-vrdp-keymaps
 #patch -p1 -i $CWD/006-rdesktop-vrdp-keymap-path.patch

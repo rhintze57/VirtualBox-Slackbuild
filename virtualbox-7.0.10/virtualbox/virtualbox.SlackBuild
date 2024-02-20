@@ -153,7 +153,7 @@ sed -i "s|CXX_FLAGS=\"\"|CXX_FLAGS=\"$SLKCFLAGS -std=c++11\"|" ./configure
 
 cp $CWD/LocalConfig.kmk .
 sed -i "s|LIBDIR|lib$LIBDIRSUFFIX|" ./LocalConfig.kmk
-sed -i "s|CXXFLAGS|$SLKCFLAGS -std=c++11|" ./LocalConfig.kmk
+sed -i "s|CXXFLAGS|$SLKCFLAGS -std=c++11 -fpermissive|" ./LocalConfig.kmk
 
 kmk -j ${JOBS} LOCALCFG=./LocalConfig.kmk
 

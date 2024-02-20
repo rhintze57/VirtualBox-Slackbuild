@@ -1,0 +1,29 @@
+--- VirtualBox-7.0.14/src/VBox/Runtime/r3/xml.cpp b/src/VBox/Runtime/r3/xml.cpp.orig	2024-02-20 00:46:46.198174379 -0500
++++ VirtualBox-7.0.14/src/VBox/Runtime/r3/xml.cpp b/src/VBox/Runtime/r3/xml.cpp	2024-02-20 00:51:45.809461900 -0500
+@@ -131,7 +131,7 @@
+     RTStrFree(msg);
+ }
+ 
+-XmlError::XmlError(xmlErrorPtr aErr)
++XmlError::XmlError(const xmlError *aErr)
+ {
+     if (!aErr)
+         throw EInvalidArg(RT_SRC_POS);
+@@ -145,7 +145,7 @@
+  * Composes a single message for the given error. The caller must free the
+  * returned string using RTStrFree() when no more necessary.
+  */
+-/* static */ char *XmlError::Format(xmlErrorPtr aErr)
++/* static */ char *XmlError::Format(const xmlError *aErr)
+ {
+     const char *msg = aErr->message ? aErr->message : "<none>";
+     size_t msgLen = strlen(msg);
+@@ -1856,7 +1856,7 @@
+     va_end(args);
+ }
+ 
+-static void xmlParserBaseStructuredError(void *pCtx, xmlErrorPtr error) RT_NOTHROW_DEF
++static void xmlParserBaseStructuredError(void *pCtx, const xmlError *error) RT_NOTHROW_DEF
+ {
+     NOREF(pCtx);
+     /* we expect that there is always a trailing NL */

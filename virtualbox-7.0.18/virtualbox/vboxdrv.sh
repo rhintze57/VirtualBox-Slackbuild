@@ -518,7 +518,6 @@ See the documentation for your Linux distribution." console
         chown root:vboxusers /dev/vboxusb 2>/dev/null
     fi
     # Remove any kernel modules left over from previously installed kernels.
-    cleanup only_old
     succ_msg "VirtualBox services started"
 }
 
@@ -671,7 +670,7 @@ status)
     dmnstatus
     ;;
 *)
-    echo "Usage: $0 {start|stop|stop_vms|restart|setup|cleanup|force-reload|status}"
+    echo "Usage: $0 {start|stop|stop_vms|restart|setup|force-reload|status}"
     exit 1
 esac
 

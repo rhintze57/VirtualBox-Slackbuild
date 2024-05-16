@@ -125,7 +125,7 @@ MODE="755"
 patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 
 # patch to fix gcc13 and dxvk-native-1.92a
-##patch -p1 -i $CWD/virtualbox-gcc13_cstdint.patch
+patch -p1 -i $CWD/virtualbox-gcc13_cstdint.patch
 
 # patch libxml-2.12
 ##patch -p1 -i $CWD/libxml-2.12_h.patch

@@ -426,11 +426,6 @@ module_available()
     mod_dir="$(dirname "$mod_path" | sed 's;^.*/;;')"
     [ "$mod_dir" = "misc" ] || return
 
-    # In case if kernel configuration requires module signature, check if module is signed.
-    if test "$(kernel_requires_module_signature)" = "1"; then
-        [ "$(module_signed "$mod")" = "1" ] || return
-    fi
-
     echo "1"
 }
 
@@ -451,16 +446,6 @@ start()
     if [ -d /proc/xen ]; then
         failure "Running VirtualBox in a Xen environment is not supported"
     fi
-    if test "$(kernel_requires_module_signature)" = "1" && test -z "$DEB_KEY_ENROLLED"; then
-        if test -n "$HAVE_DEB_KEY"; then
-            begin_msg "You must re-start your system to finish Debian secure boot set-up." console
-        else
-            begin_msg "You must sign these kernel modules before using VirtualBox:
-  $MODULE_LIST
-See the documentation for your Linux distribution." console
-        fi
-    fi
-
     if ! running vboxdrv; then
 
         # Check if system already has matching modules installed.
@@ -517,7 +502,6 @@ See the documentation for your Linux distribution." console
         mkdir -p -m 0750 /dev/vboxusb 2>/dev/null
         chown root:vboxusers /dev/vboxusb 2>/dev/null
     fi
-    # Remove any kernel modules left over from previously installed kernels.
     succ_msg "VirtualBox services started"
 }
 

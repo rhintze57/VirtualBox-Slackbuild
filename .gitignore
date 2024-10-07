@@ -1,8 +1,8 @@
 # Ignore the downloaded files
-virtualbox-7.0.18/virtualbox/VirtualBox-7.0.18.tar.bz2
-virtualbox-7.0.18/virtualbox/SDKRef.pdf
-virtualbox-7.0.18/virtualbox/UserManual.pdf
-virtualbox-7.0.18/virtualbox/VBoxGuestAdditions_7.0.18.iso
-virtualbox-7.0.18/virtualbox-extension-pack/Oracle_VM_VirtualBox_Extension_Pack-7.0.18.vbox-extpack
-virtualbox-7.0.18/virtualbox/cleanup_for_post.sh
-virtualbox-7.0.18/virtualbox-extension-pack/cleanup_for_post.sh
+virtualbox-7.1.0/virtualbox/VirtualBox-7.1.0.tar.bz2
+virtualbox-7.1.0/virtualbox/SDKRef.pdf
+virtualbox-7.1.0/virtualbox/UserManual.pdf
+virtualbox-7.1.0/virtualbox/VBoxGuestAdditions_7.1.0.iso
+virtualbox-7.1.0/virtualbox-extension-pack/Oracle_VM_VirtualBox_Extension_Pack-7.1.0.vbox-extpack
+virtualbox-7.1.0/virtualbox/cleanup_for_post.sh
+virtualbox-7.1.0/virtualbox-extension-pack/cleanup_for_post.sh

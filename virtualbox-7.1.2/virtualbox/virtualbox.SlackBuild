@@ -27,7 +27,7 @@ cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-7.0.18}
+VERSION=${VERSION:-7.1.2}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 PKGTYPE=${PKGTYPE:-tgz}
@@ -125,7 +125,7 @@ MODE="755"
 patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff
 
 # patch to fix gcc13 and dxvk-native-1.92a
-patch -p1 -i $CWD/virtualbox-gcc13_cstdint.patch
+#patch -p1 -i $CWD/virtualbox-gcc13_cstdint.patch
 
 # patch libxml-2.12
 ##patch -p1 -i $CWD/libxml-2.12_h.patch
@@ -137,8 +137,14 @@ patch -p1 -i $CWD/virtualbox-gcc13_cstdint.patch
 # Fix "Unable to locate imported symbol 'memset'" error.
 #patch -i $CWD/virtualbox-VBoxR0.diff
 
+# make this file a link  due to some issue with python path
+#     ${TMP}/${SRCNAM}-${VERSION}
+mkdir -p ${TMP}/${SRCNAM}-${VERSION}/out/linux.amd64/release/bin/sdk/installer
+ln -s ${TMP}/${SRCNAM}-${VERSION}/out/linux.amd64/release/bin/sdk/installer/python/vboxapisetup.py ${TMP}/${SRCNAM}-${VERSION}/out/linux.amd64/release/bin/sdk/installer/vboxapisetup.py
+ln -s ${TMP}/${SRCNAM}-${VERSION}/out/linux.amd64/release/bin/sdk/installer/python/vboxapi ${TMP}/${SRCNAM}-${VERSION}/out/linux.amd64/release/bin/sdk/installer/vboxapi
+
 # Skip python2 detection and cheat about python-3.10 support
-sed -i 's|python2.7 python2.6 |python3.10 |' ./configure
+##sed -i 's|python2.7 python2.6 |python3.10 |' ./configure
 
 # Use our CFLAGS
 sed -i "s|CXX_FLAGS=\"\"|CXX_FLAGS=\"$SLKCFLAGS -std=c++11\"|" ./configure

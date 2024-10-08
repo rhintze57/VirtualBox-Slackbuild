@@ -3,7 +3,7 @@ A collection of slackware goodies
 
 Slackbuild for virtualbox 7.1.2
 tested on slackware current. (with 6.11.2 testing or stock
-
+ - Seems there is a need to uninstall older versions before installing
 
 
 Dependancies:  acpica, virtualbox-kernel

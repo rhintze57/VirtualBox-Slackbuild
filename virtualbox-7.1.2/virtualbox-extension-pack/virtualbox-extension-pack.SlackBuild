@@ -68,7 +68,7 @@ fi
 
 set -e
 
-EXTPACK="Oracle_VM_VirtualBox_Extension_Pack"
+EXTPACK="Oracle_VirtualBox_Extension_Pack"
 
 rm -rf $PKG
 mkdir -p $PKG/usr/lib$LIBDIRSUFFIX/virtualbox/ExtensionPacks/$EXTPACK $OUTPUT

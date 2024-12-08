@@ -28,5 +28,9 @@ add this to bootloader options (elilo, grub, or refined):
 ```
 kvm.enable_virt_at_load=0
 sample:
+[elilo]
+append="root=PARTUUID=xxxxxxxxxx-xxxxxxx-xxxxxx kvm.enable_virt_at_load=0  vga=normal ro"
+[refined]
 options "ro root=PARTUUID=xxxxxxxxxx-xxxxx-xxxxx kvm.enable_virt_at_load=0"
+
 ```

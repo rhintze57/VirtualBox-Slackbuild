@@ -24,7 +24,9 @@ HARDENING=yes ./virtualbox.SlackBuild
 KERNEL=6.12.3 HARDENING=yes ./virtualbox-kernel.SlackBuild
 ```
 
-add:
+add this to bootloader options (elilo, grub, or refined):
 ```
-kvm.enable_virt_at_load=0 to options
+kvm.enable_virt_at_load=0
+sample:
+options "ro root=PARTUUID=xxxxxxxxxx-xxxxx-xxxxx kvm.enable_virt_at_load=0"
 ```

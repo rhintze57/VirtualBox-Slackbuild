@@ -23,3 +23,8 @@ I use :
 HARDENING=yes ./virtualbox.SlackBuild
 KERNEL=6.12.3 HARDENING=yes ./virtualbox-kernel.SlackBuild
 ```
+
+add:
+```
+kvm.enable_virt_at_load=0 to options
+```

@@ -36,5 +36,6 @@ options "ro root=PARTUUID=xxxxxxxxxx-xxxxx-xxxxx kvm.enable_virt_at_load=0"
 ```
 or  (found on linuxquestions)
 Just create /etc/modprobe.d/virtualbox.conf with content:
-Code:
+```
 options kvm enable_virt_at_load=0
+```

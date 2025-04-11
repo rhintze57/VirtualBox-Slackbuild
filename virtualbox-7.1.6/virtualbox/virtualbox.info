@@ -1,0 +1,16 @@
+PRGNAM="virtualbox"
+VERSION="7.1.4"
+HOMEPAGE="https://www.virtualbox.org"
+DOWNLOAD="UNSUPPORTED"
+MD5SUM=""
+DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/7.1.4/VirtualBox-7.1.4.tar.bz2 \
+          http://download.virtualbox.org/virtualbox/7.1.4/VBoxGuestAdditions_7.1.4.iso \
+          http://download.virtualbox.org/virtualbox/7.1.4/UserManual.pdf \
+          http://download.virtualbox.org/virtualbox/7.1.4/SDKRef.pdf"
+MD5SUM_x86_64="434391e2b91b49c29d02bd9266730661 \
+               1c1dfc3cab7c39f1ee27428392796e74 \
+               19eefb9b8713772c5a191fb3d6b7a651 \
+               94e3e870041c17e1e2326b912de1a9a3"
+REQUIRES="acpica virtualbox-kernel"
+MAINTAINER="Heinz Wiesinger"
+EMAIL="pprkut@slackbuilds.org"

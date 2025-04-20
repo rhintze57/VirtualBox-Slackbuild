@@ -27,7 +27,7 @@ cd $(dirname $0) ; CWD=$(pwd)
 
 PRGNAM=virtualbox
 SRCNAM=VirtualBox
-VERSION=${VERSION:-7.1.6}
+VERSION=${VERSION:-7.1.8}
 BUILD=${BUILD:-1}
 TAG=${TAG:-_rah}
 PKGTYPE=${PKGTYPE:-tgz}
@@ -109,8 +109,8 @@ mkdir -p $TMP $PKG $OUTPUT
 cd $TMP
 rm -rf $SRCNAM-${VERSION}
 tar xvf $CWD/$SRCNAM-${VERSION}.tar.bz2
-# rich patch   security-of-remote-vms.dita to VirtualBox-7.1.6/doc/manual/en_US/dita/topics/
-cp $CWD/security-of-remote-vms.dita ${TMP}/${SRCNAM}-${VERSION}/doc/manual/en_US/dita/topics/
+# rich patch   security-of-remote-vms.dita to VirtualBox-7.1.8/doc/manual/en_US/dita/topics/
+#cp $CWD/security-of-remote-vms.dita ${TMP}/${SRCNAM}-${VERSION}/doc/manual/en_US/dita/topics/
 cd $SRCNAM-${VERSION}
 chown -R root:root .
 find -L . \

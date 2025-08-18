@@ -1,8 +1,8 @@
 # slackware
 A collection of slackware goodies
 
-Slackbuild for virtualbox 7.1.12
-tested on slackware current. (with 6.12.39 testing or stock
+Slackbuild for virtualbox 7.2.0
+tested on slackware current. (with 6.12.42 testing or stock
  - Seems there is a need to uninstall older versions before installing
 
 

@@ -122,6 +122,9 @@ find -L . \
 GROUP="vboxusers"
 MODE="755"
 
+# Fix curl_proxytype issue
+sed -i 's/curl_proxytype/long int/g' src/VBox/Runtime/generic/http-curl.cpp
+
 # We don't want an init-script building kernel modules.
 # Use virtualbox-kernel.SlackBuild for this.
 patch -d src/VBox/Installer/linux -i $CWD/vboxdrv.sh-setup.diff

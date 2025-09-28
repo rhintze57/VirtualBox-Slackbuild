@@ -1,0 +1,16 @@
+PRGNAM="virtualbox"
+VERSION="7.2.2"
+HOMEPAGE="https://www.virtualbox.org"
+DOWNLOAD="UNSUPPORTED"
+MD5SUM=""
+DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/7.2.2/VirtualBox-7.2.2.tar.bz2 \
+          http://download.virtualbox.org/virtualbox/7.2.2/VBoxGuestAdditions_7.2.2.iso \
+          http://download.virtualbox.org/virtualbox/7.2.2/UserManual.pdf \
+          http://download.virtualbox.org/virtualbox/7.2.2/SDKRef.pdf"
+MD5SUM_x86_64="df67dd44a9c91669f096e74013f9d78b \
+               d4fef4cddacc27e04b9d5778f27bfa0e \
+               23b14f1c73e94eef325fcf124108cbb9 \
+               9083db817249f9900d64400009c4dee6"
+REQUIRES="acpica virtualbox-kernel"
+MAINTAINER="Heinz Wiesinger"
+EMAIL="pprkut@slackbuilds.org"

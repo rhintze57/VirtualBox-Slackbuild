@@ -7,10 +7,10 @@ DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/7.2.6/VirtualBox-7.2.
           http://download.virtualbox.org/virtualbox/7.2.6/VBoxGuestAdditions_7.2.6.iso \
           http://download.virtualbox.org/virtualbox/7.2.6/UserManual.pdf \
           http://download.virtualbox.org/virtualbox/7.2.6/SDKRef.pdf"
-MD5SUM_x86_64=" \
-                \
-                \
-               "
+MD5SUM_x86_64="a43b99d8dad760405b25e8fa87ff0c95 \
+               e7330ba306b0b0c622ce44d925de847a \
+               1e5d4cdbb5dc0876022711090c3b84eb \
+               82a8c09b9032144b36fae084c9ce6020"
 REQUIRES="acpica virtualbox-kernel"
 MAINTAINER="Heinz Wiesinger"
 EMAIL="pprkut@slackbuilds.org"

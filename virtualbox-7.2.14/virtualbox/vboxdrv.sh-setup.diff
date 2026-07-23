@@ -1,5 +1,5 @@
---- vboxdrv.sh_stock_7.2.14	2026-07-21 08:56:19.035499547 -0400
-+++ vboxdrv.sh	2026-07-21 09:30:44.274706246 -0400
+--- vboxdrv.sh_stock_7.2.14	2026-07-21 10:58:03.888928659 -0400
++++ vboxdrv.sh          	2026-07-23 10:17:24.643797690 -0400
 @@ -85,12 +85,14 @@
      # Applies to Debian packages only (but shouldn't hurt elsewhere)
      exit 0
@@ -97,7 +97,35 @@
  # Returns "1" if module is signed and signature can be verified
  # with public key provided in DEB_PUB_KEY. Or empty string otherwise.
  module_signed()
-@@ -595,8 +523,6 @@
+@@ -504,11 +432,6 @@
+     mod_dir="$(dirname "$mod_path" | sed 's;^.*/;;')"
+     [ "$mod_dir" = "misc" ] || return
+ 
+-    # In case if kernel configuration requires module signature, check if module is signed.
+-    if test "$(kernel_requires_module_signature)" = "1"; then
+-        [ "$(module_signed "$mod")" = "1" ] || return
+-    fi
+-
+     echo "1"
+ }
+ 
+@@ -529,15 +452,6 @@
+     if [ -d /proc/xen ]; then
+         failure "Running VirtualBox in a Xen environment is not supported"
+     fi
+-    if test "$(kernel_requires_module_signature)" = "1" && test -z "$DEB_KEY_ENROLLED"; then
+-        if test -n "$HAVE_DEB_KEY"; then
+-            begin_msg "You must re-start your system to finish Debian secure boot set-up." console
+-        else
+-            begin_msg "You must sign these kernel modules before using VirtualBox:
+-  $MODULE_LIST
+-See the documentation for your Linux distribution." console
+-        fi
+-    fi
+ 
+     if ! running vboxdrv; then
+ 
+@@ -595,8 +509,6 @@
          mkdir -p -m 0750 /dev/vboxusb 2>/dev/null
          chown root:vboxusers /dev/vboxusb 2>/dev/null
      fi
@@ -106,7 +134,7 @@
      succ_msg "VirtualBox services started"
  }
  
-@@ -677,157 +603,10 @@
+@@ -677,157 +589,10 @@
      fi
  }
  
@@ -265,7 +293,7 @@
  }
  
  dmnstatus()
-@@ -884,14 +663,10 @@
+@@ -884,14 +649,10 @@
      ## todo Do we need a udev rule to create /dev/vboxdrv[u] at all?  We have
      ## working fall-back code here anyway, and the "right" code is more complex
      ## than the fall-back.  Unnecessary duplication?
@@ -281,7 +309,7 @@
  force-reload)
      stop
      start
-@@ -900,7 +675,7 @@
+@@ -900,7 +661,7 @@
      dmnstatus
      ;;
  *)

@@ -1,0 +1,16 @@
+PRGNAM="virtualbox"
+VERSION="7.2.16"
+HOMEPAGE="https://www.virtualbox.org"
+DOWNLOAD="UNSUPPORTED"
+MD5SUM=""
+DOWNLOAD_x86_64="http://download.virtualbox.org/virtualbox/7.2.16/VirtualBox-7.2.16.tar.bz2 \
+          http://download.virtualbox.org/virtualbox/7.2.16/VBoxGuestAdditions_7.2.16.iso \
+          http://download.virtualbox.org/virtualbox/7.2.16/UserManual.pdf \
+          http://download.virtualbox.org/virtualbox/7.2.16/SDKRef.pdf"
+MD5SUM_x86_64="8c5c7f15a1b66f6e7f06b61032738a6f \
+               8a6638908ae2f6c0df6360489cee7ea6 \
+               b37023d81ba9174404136547ff428210 \
+               9dead1d43a45873e37b3ee7edc006975"
+REQUIRES="acpica virtualbox-kernel"
+MAINTAINER="Heinz Wiesinger"
+EMAIL="pprkut@slackbuilds.org"

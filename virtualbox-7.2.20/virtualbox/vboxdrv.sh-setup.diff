@@ -1,140 +1,41 @@
---- vboxdrv.sh_stock_7.2.14	2026-07-21 10:58:03.888928659 -0400
-+++ vboxdrv.sh          	2026-07-23 10:17:24.643797690 -0400
-@@ -85,12 +85,14 @@
-     # Applies to Debian packages only (but shouldn't hurt elsewhere)
-     exit 0
+--- vboxdrv.sh_stock_7.2.20	2026-10-06 16:02:04.344805223 -0400
++++ vboxdrv.sh	2026-10-06 16:18:09.744377390 -0400
+@@ -139,20 +139,20 @@
  fi
-+VIRTUALBOX="${INSTALL_DIR}/VirtualBox"
- VBOXMANAGE="${INSTALL_DIR}/VBoxManage"
- BUILDINTMP="${MODULE_SRC}/build_in_tmp"
  
- # If the VirtualBoxVM file has the set-uid bit set or if it doesn't exist, setup vboxdrv
- # in hardened mode.  Otherwise, do the developer mode using vboxusers for access control.
--if test -u "${INSTALL_DIR}/VirtualBoxVM" || test '!' -e "${INSTALL_DIR}/VirtualBoxVM"; then
-+#if test -u "${INSTALL_DIR}/VirtualBoxVM" || test '!' -e "${INSTALL_DIR}/VirtualBoxVM"; then
-+if test -u "${VIRTUALBOX}"; then
-     GROUP=root
-     DEVICE_MODE=0600
- else
-@@ -345,80 +347,6 @@
-     modinfo "$mod" 2>/dev/null | grep -e "^version:" | tr -s ' ' | cut -d " " -f3
- }
- 
--# Reads kernel configuration option.
--kernel_get_config_opt()
+ # Check if update-secureboot-policy tool supports required commandline options.
+-update_secureboot_policy_supports()
 -{
 -    opt_name="$1"
 -    [ -n "$opt_name" ] || return
 -
--    # Check if there is a kernel tool which can extract config option.
--    if test -x /lib/modules/"$KERN_VER"/build/scripts/config; then
--        /lib/modules/"$KERN_VER"/build/scripts/config \
--            --file /lib/modules/"$KERN_VER"/build/.config \
--            --state "$opt_name" 2>/dev/null
--    elif test -f /lib/modules/"$KERN_VER"/build/.config; then
--        # Extract config option manually.
--        grep "$opt_name=" /lib/modules/"$KERN_VER"/build/.config | sed -e "s/^$opt_name=//" -e "s/\"//g"
--    fi
--}
--
--# Reads CONFIG_MODULE_SIG_HASH from kernel config.
--kernel_module_sig_hash()
--{
--    kernel_get_config_opt "CONFIG_MODULE_SIG_HASH"
--}
--
--# Returns "1" if kernel module signature hash algorithm
--# is supported by us. Or empty string otherwise.
--module_sig_hash_supported()
--{
--    sig_hashalgo="$1"
--    [ -n "$sig_hashalgo" ] || return
--
--    # Go through supported list.
--    [    "$sig_hashalgo" = "sha1"   \
--      -o "$sig_hashalgo" = "sha224" \
--      -o "$sig_hashalgo" = "sha256" \
--      -o "$sig_hashalgo" = "sha384" \
--      -o "$sig_hashalgo" = "sha512" ] || return
--
+-    [ -z "$(update-secureboot-policy --help 2>&1 | grep "$opt_name")" ] && return
 -    echo "1"
 -}
 -
--# Check if kernel configuration requires modules signature.
--kernel_requires_module_signature()
--{
--    vbox_sys_lockdown_path="/sys/kernel/security/lockdown"
--
--    requires=""
--    # We consider that if kernel is running in the following configurations,
--    # it will require modules to be signed.
--    if [ "$(kernel_get_config_opt "CONFIG_MODULE_SIG")" = "y" ]; then
--
--        # Modules signature verification is hardcoded in kernel config.
--        [ "$(kernel_get_config_opt "CONFIG_MODULE_SIG_FORCE")" = "y" ] && requires="1"
--
--        # Unsigned modules loading is restricted by "lockdown" feature in runtime.
--        if [   "$(kernel_get_config_opt "CONFIG_LOCK_DOWN_KERNEL")" = "y" \
--            -o "$(kernel_get_config_opt "CONFIG_SECURITY_LOCKDOWN_LSM")" = "y" \
--            -o "$(kernel_get_config_opt "CONFIG_SECURITY_LOCKDOWN_LSM_EARLY")" = "y" ]; then
--
--            # Once lockdown level is set to something different than "none" (e.g., "integrity"
--            # or "confidentiality"), kernel will reject unsigned modules loading.
--            if [ -r "$vbox_sys_lockdown_path" ]; then
--                [ -n "$(cat "$vbox_sys_lockdown_path" | grep "\[integrity\]")" ] && requires="1"
--                [ -n "$(cat "$vbox_sys_lockdown_path" | grep "\[confidentiality\]")" ] && requires="1"
--            fi
--
--            # This configuration is used by a number of modern Linux distributions and restricts
--            # unsigned modules loading when Secure Boot mode is enabled.
--            [ "$(kernel_get_config_opt "CONFIG_LOCK_DOWN_IN_EFI_SECURE_BOOT")" = "y" -a -n "$HAVE_SEC_BOOT" ] && requires="1"
--        fi
--    fi
--
--    [ -n "$requires" ] && echo "1"
--}
--
- # Returns "1" if module is signed and signature can be verified
- # with public key provided in DEB_PUB_KEY. Or empty string otherwise.
- module_signed()
-@@ -504,11 +432,6 @@
-     mod_dir="$(dirname "$mod_path" | sed 's;^.*/;;')"
-     [ "$mod_dir" = "misc" ] || return
+-HAVE_UPDATE_SECUREBOOT_POLICY_TOOL=
+-if type update-secureboot-policy >/dev/null 2>&1; then
+-    [ "$(update_secureboot_policy_supports new-key)" = "1" -a "$(update_secureboot_policy_supports enroll-key)" = "1" ] && \
+-        HAVE_UPDATE_SECUREBOOT_POLICY_TOOL=true
+-fi
++#update_secureboot_policy_supports()
++#{
++#    opt_name="$1"
++#    [ -n "$opt_name" ] || return
++#
++#    [ -z "$(update-secureboot-policy --help 2>&1 | grep "$opt_name")" ] && return
++#    echo "1"
++#}
++
++#HAVE_UPDATE_SECUREBOOT_POLICY_TOOL=
++#if type update-secureboot-policy >/dev/null 2>&1; then
++#    [ "$(update_secureboot_policy_supports new-key)" = "1" -a "$(update_secureboot_policy_supports enroll-key)" = "1" ] && \
++#        HAVE_UPDATE_SECUREBOOT_POLICY_TOOL=true
++#fi
  
--    # In case if kernel configuration requires module signature, check if module is signed.
--    if test "$(kernel_requires_module_signature)" = "1"; then
--        [ "$(module_signed "$mod")" = "1" ] || return
--    fi
--
-     echo "1"
- }
+ [ -r /etc/default/virtualbox ] && . /etc/default/virtualbox
  
-@@ -529,15 +452,6 @@
-     if [ -d /proc/xen ]; then
-         failure "Running VirtualBox in a Xen environment is not supported"
-     fi
--    if test "$(kernel_requires_module_signature)" = "1" && test -z "$DEB_KEY_ENROLLED"; then
--        if test -n "$HAVE_DEB_KEY"; then
--            begin_msg "You must re-start your system to finish Debian secure boot set-up." console
--        else
--            begin_msg "You must sign these kernel modules before using VirtualBox:
--  $MODULE_LIST
--See the documentation for your Linux distribution." console
--        fi
--    fi
- 
-     if ! running vboxdrv; then
- 
-@@ -595,8 +509,6 @@
-         mkdir -p -m 0750 /dev/vboxusb 2>/dev/null
-         chown root:vboxusers /dev/vboxusb 2>/dev/null
-     fi
--    # Remove any kernel modules left over from previously installed kernels.
--    cleanup only_old
-     succ_msg "VirtualBox services started"
- }
- 
-@@ -677,157 +589,10 @@
+@@ -589,157 +589,10 @@
      fi
  }
  
@@ -282,7 +183,7 @@
 -            mkdir -p /var/lib/dkms/vbox-temp
 -            update-secureboot-policy --enroll-key 2>/dev/null ||
 -                begin_msg "Failed to enroll secure boot key." console
--            rmdir -p /var/lib/dkms/vbox-temp 2>/dev/null
+-            rmdir /var/lib/dkms/vbox-temp 2>/dev/null
 -
 -            # Indicate that key has been enrolled and reboot is needed.
 -            HAVE_DEB_KEY=true
@@ -293,28 +194,3 @@
  }
  
  dmnstatus()
-@@ -884,14 +649,10 @@
-     ## todo Do we need a udev rule to create /dev/vboxdrv[u] at all?  We have
-     ## working fall-back code here anyway, and the "right" code is more complex
-     ## than the fall-back.  Unnecessary duplication?
--    stop && cleanup
-+    stop
-     setup_usb "$GROUP" "$DEVICE_MODE" "$INSTALL_DIR"
-     start
-     ;;
--cleanup)
--    stop && cleanup
--    cleanup_usb
--    ;;
- force-reload)
-     stop
-     start
-@@ -900,7 +661,7 @@
-     dmnstatus
-     ;;
- *)
--    echo "Usage: $0 {start|stop|stop_vms|restart|setup|cleanup|force-reload|status}"
-+    echo "Usage: $0 {start|stop|stop_vms|restart|setup|force-reload|status}"
-     exit 1
- esac
- 

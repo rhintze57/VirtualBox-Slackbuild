@@ -1,7 +1,7 @@
 # slackware
 A collection of slackware goodies
 
-Slackbuild for virtualbox 7.2.16
+Slackbuild for virtualbox 7.2.20
 tested on slackware current. (with 7.1.4 testing or stock
  - Seems there is a need to uninstall older versions before installing
 
@@ -21,7 +21,7 @@ To download the need source files run this: (in each folder)
 I use :
 ```
 HARDENING=yes ./virtualbox.SlackBuild
-KERNEL=7.2.4 HARDENING=yes ./virtualbox-kernel.SlackBuild
+KERNEL=7.2.9 HARDENING=yes ./virtualbox-kernel.SlackBuild
 ```
 
 add this to bootloader options (elilo, grub, or refined):

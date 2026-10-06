@@ -1,9 +1,9 @@
 #! /bin/sh
-# Oracle VM VirtualBox
+# Oracle VirtualBox
 # Linux kernel module init script
 
 #
-# Copyright (C) 2006-2023 Oracle and/or its affiliates.
+# Copyright (C) 2006-2025 Oracle and/or its affiliates.
 #
 # This file is part of VirtualBox base platform packages, as
 # available from https://www.virtualbox.org.
@@ -88,6 +88,10 @@ fi
 VIRTUALBOX="${INSTALL_DIR}/VirtualBox"
 VBOXMANAGE="${INSTALL_DIR}/VBoxManage"
 BUILDINTMP="${MODULE_SRC}/build_in_tmp"
+
+# If the VirtualBoxVM file has the set-uid bit set or if it doesn't exist, setup vboxdrv
+# in hardened mode.  Otherwise, do the developer mode using vboxusers for access control.
+#if test -u "${INSTALL_DIR}/VirtualBoxVM" || test '!' -e "${INSTALL_DIR}/VirtualBoxVM"; then
 if test -u "${VIRTUALBOX}"; then
     GROUP=root
     DEVICE_MODE=0600
@@ -98,9 +102,11 @@ fi
 
 KERN_VER=`uname -r`
 
-# Prepend PATH for building UEK7 on OL8 distribution.
+# Prepend PATH for building UEK on OL8/9 distributions.
 case "$KERN_VER" in
     5.15.0-*.el8uek*) PATH="/opt/rh/gcc-toolset-11/root/usr/bin:$PATH";;
+    6.12.0-*.el9uek*)PATH="/opt/rh/gcc-toolset-14/root/usr/bin:$PATH";;
+    6.18.0-*.el9uek*)PATH="/opt/rh/gcc-toolset-14/root/usr/bin:$PATH";;
 esac
 
 if test -e "${MODULE_SRC}/vboxpci"; then
@@ -446,6 +452,7 @@ start()
     if [ -d /proc/xen ]; then
         failure "Running VirtualBox in a Xen environment is not supported"
     fi
+
     if ! running vboxdrv; then
 
         # Check if system already has matching modules installed.
@@ -582,10 +589,157 @@ stop_vms()
     fi
 }
 
+cleanup()
+{
+    # If this is set, only remove kernel modules for no longer installed
+    # kernels.  Note that only generated kernel modules should be placed
+    # in /lib/modules/*/misc.  Anything that we should not remove automatically
+    # should go elsewhere.
+    only_old="${1}"
+    for i in /lib/modules/*; do
+        # Check whether we are only cleaning up for uninstalled kernels.
+        test -n "${only_old}" && test -e "${i}/kernel/drivers" && continue
+
+        unset do_update
+        for j in $MODULE_LIST; do
+            for mod_ext in ko ko.gz ko.xz ko.zst; do
+                test -f "${i}/misc/${j}.${mod_ext}" && do_update=1 && rm -f "${i}/misc/${j}.${mod_ext}"
+            done
+        done
+
+        # Trigger depmod(8) only in case if directory content was modified
+        # and save a bit of run time.
+        test -n "$do_update" && depmod -a "$(basename "$i")" && sync
+
+        # Remove the kernel version folder if it was empty except for us.
+        test   "`echo ${i}/misc/* ${i}/misc/.?* ${i}/* ${i}/.?*`" \
+             = "${i}/misc/* ${i}/misc/.. ${i}/misc ${i}/.." &&
+            rmdir "${i}/misc" "${i}"  # We used to leave empty folders.
+    done
+}
+
 # setup_script
 setup()
 {
-    echo "Not implemented! Please use the virtualbox-kernel.SlackBuild available at SlackBuilds.org instead."
+    begin_msg "Building VirtualBox kernel modules" console
+    log "Building the main VirtualBox module."
+
+    # Detect if kernel was built with clang.
+    unset LLVM
+    vbox_cc_is_clang=$(kernel_get_config_opt "CONFIG_CC_IS_CLANG")
+    if test "${vbox_cc_is_clang}" = "y"; then
+        log "Using clang compiler."
+        export LLVM=1
+    fi
+
+    if ! myerr=`$BUILDINTMP \
+        --save-module-symvers /tmp/vboxdrv-Module.symvers \
+        --module-source "$MODULE_SRC/vboxdrv" \
+        --skip-depmod \
+        --no-print-directory install 2>&1`; then
+        "${INSTALL_DIR}/check_module_dependencies.sh" || exit 1
+        log "Error building the module:"
+        module_build_log "$myerr"
+        failure "Look at $LOG to find out what went wrong"
+    fi
+    log "Building the net filter module."
+    if ! myerr=`$BUILDINTMP \
+        --use-module-symvers /tmp/vboxdrv-Module.symvers \
+        --module-source "$MODULE_SRC/vboxnetflt" \
+        --skip-depmod \
+        --no-print-directory install 2>&1`; then
+        log "Error building the module:"
+        module_build_log "$myerr"
+        failure "Look at $LOG to find out what went wrong"
+    fi
+    log "Building the net adapter module."
+    if ! myerr=`$BUILDINTMP \
+        --use-module-symvers /tmp/vboxdrv-Module.symvers \
+        --module-source "$MODULE_SRC/vboxnetadp" \
+        --skip-depmod \
+        --no-print-directory install 2>&1`; then
+        log "Error building the module:"
+        module_build_log "$myerr"
+        failure "Look at $LOG to find out what went wrong"
+    fi
+    if test -e "$MODULE_SRC/vboxpci"; then
+        log "Building the PCI pass-through module."
+        if ! myerr=`$BUILDINTMP \
+            --use-module-symvers /tmp/vboxdrv-Module.symvers \
+            --module-source "$MODULE_SRC/vboxpci" \
+            --skip-depmod \
+            --no-print-directory install 2>&1`; then
+            log "Error building the module:"
+            module_build_log "$myerr"
+            failure "Look at $LOG to find out what went wrong"
+        fi
+    fi
+    rm -f /etc/vbox/module_not_compiled
+    depmod -a
+    sync
+    succ_msg "VirtualBox kernel modules built"
+
+    # Sign kernel modules if kernel configuration requires it.
+    if test "$(kernel_requires_module_signature)" = "1"; then
+        begin_msg "Signing VirtualBox kernel modules" console
+
+        # Generate new signing key if needed.
+        [ -n "$HAVE_UPDATE_SECUREBOOT_POLICY_TOOL" ] && SHIM_NOTRIGGER=y update-secureboot-policy --new-key
+
+        # Check if signing keys are in place.
+        if test ! -f "$DEB_PUB_KEY" || ! test -f "$DEB_PRIV_KEY"; then
+            # update-secureboot-policy tool present in the system, but keys were not generated.
+            [ -n "$HAVE_UPDATE_SECUREBOOT_POLICY_TOOL" ] && fail_msg "
+
+update-secureboot-policy tool does not generate signing keys
+in your distribution, see below on how to generate them manually
+"
+
+            # update-secureboot-policy not present in the system, recommend generate keys manually.
+            failure "
+
+System is running in Secure Boot mode, however your distribution
+does not provide tools for automatic generation of keys needed for
+modules signing. Please consider to generate and enroll them manually:
+
+    sudo mkdir -m 0700 -p /var/lib/shim-signed/mok
+    sudo openssl req -nodes -new -x509 -newkey rsa:2048 -outform DER -addext \"extendedKeyUsage=codeSigning\" -keyout $DEB_PRIV_KEY -out $DEB_PUB_KEY
+    sudo mokutil --import $DEB_PUB_KEY
+    sudo reboot
+
+Restart \"rcvboxdrv setup\" after system is rebooted
+"
+        fi
+
+        # Check if signing tool is available.
+        [ -n "$SIGN_TOOL" ] || failure "Unable to find signing tool"
+
+        # Get kernel signature hash algorithm from kernel config and validate it.
+        sig_hashalgo=$(kernel_module_sig_hash)
+        [ "$(module_sig_hash_supported $sig_hashalgo)" = "1" ] \
+            || failure "Unsupported kernel signature hash algorithm $sig_hashalgo"
+
+        # Sign modules.
+        for i in $MODULE_LIST; do
+            "$SIGN_TOOL" "$sig_hashalgo" "$DEB_PRIV_KEY" "$DEB_PUB_KEY" \
+                /lib/modules/"$KERN_VER"/misc/"$i".ko 2>/dev/null || failure "Unable to sign $i.ko"
+        done
+
+        # Enroll signing key if needed.
+        if test -n "$HAVE_UPDATE_SECUREBOOT_POLICY_TOOL"; then
+            # update-secureboot-policy "expects" DKMS modules.
+            # Work around this and talk to the authors as soon
+            # as possible to fix it.
+            mkdir -p /var/lib/dkms/vbox-temp
+            update-secureboot-policy --enroll-key 2>/dev/null ||
+                begin_msg "Failed to enroll secure boot key." console
+            rmdir /var/lib/dkms/vbox-temp 2>/dev/null
+
+            # Indicate that key has been enrolled and reboot is needed.
+            HAVE_DEB_KEY=true
+        fi
+        succ_msg "Signing completed"
+    fi
 }
 
 dmnstatus()
